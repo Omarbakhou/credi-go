@@ -1,0 +1,111 @@
+---
+title: Credi-Go — Conception logique des entités métier
+---
+classDiagram
+    direction LR
+
+    namespace service_clients {
+        class Client {
+            id : Long
+            nom : String
+            email : String
+            revenusMensuels : BigDecimal
+            scoreInterne : int
+            statut : StatutClient
+        }
+        class Collateral {
+            id : Long
+            clientId : Long
+            type : TypeGarantie
+            valeur : BigDecimal
+            description : String
+        }
+        class StatutClient {
+            <<enumeration>>
+            ACTIF
+            INACTIF
+        }
+        class TypeGarantie {
+            <<enumeration>>
+            CAUTION
+            VEHICULE
+            IMMOBILIER
+            EPARGNE
+        }
+    }
+
+    namespace service_credit {
+        class LoanApplication {
+            id : Long
+            idempotencyKey : String
+            clientId : Long
+            montantDemande : BigDecimal
+            montantAccorde : BigDecimal
+            scoreEtude : int
+            dureeMois : int
+            tauxPropose : BigDecimal
+            motif : String
+            statut : StatutDossier
+        }
+        class RepaymentSchedule {
+            id : Long
+            loanApplicationId : Long
+            numeroEcheance : int
+            dateEcheance : LocalDate
+            montantCapital : BigDecimal
+            montantInterets : BigDecimal
+            statut : StatutEcheance
+        }
+        class StatutDossier {
+            <<enumeration>>
+            DEPOSE
+            EN_ETUDE
+            ACCORDE
+            DEBLOQUE
+            REFUSE
+        }
+        class StatutEcheance {
+            <<enumeration>>
+            INACTIVE
+            A_PAYER
+            PAYEE
+            EN_RETARD
+        }
+    }
+
+    namespace service_decaissements {
+        class Disbursement {
+            id : Long
+            loanApplicationId : Long
+            treasuryAccountId : Long
+            montant : BigDecimal
+            date : LocalDateTime
+            statut : StatutDecaissement
+        }
+        class TreasuryAccount {
+            id : Long
+            libelle : String
+            soldeDisponible : BigDecimal
+        }
+        class StatutDecaissement {
+            <<enumeration>>
+            RESERVE
+            VERSE
+            ECHOUE
+            ANNULE
+        }
+    }
+
+    Client "1" o-- "0..*" Collateral : apporte
+    Client --> StatutClient : statut
+    Collateral --> TypeGarantie : type
+
+    LoanApplication "1" *-- "0..*" RepaymentSchedule : échéancier
+    LoanApplication --> StatutDossier : statut
+    RepaymentSchedule --> StatutEcheance : statut
+
+    Disbursement "0..*" --> "1" TreasuryAccount : débite
+    Disbursement --> StatutDecaissement : statut
+
+    LoanApplication ..> Client : référence par clientId (score, garanties)
+    Disbursement ..> LoanApplication : référence par loanApplicationId

@@ -1,0 +1,2119 @@
+{
+  "info": {
+    "_postman_id": "a96db4b7-9719-44d7-aa63-a14e0648be27",
+    "name": "Credi-Go - V1 à V3",
+    "description": "Scénarios de test sauvegardés : CRUD, validations (400), ressources inexistantes (404), règles métier (409), Eureka, Config Server et Gateway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0 - Infrastructure (Eureka, Config Server)",
+      "description": "Vérifie l'enregistrement dans Eureka et le chargement des configurations externalisées.",
+      "item": [
+        {
+          "name": "Eureka - applications enregistrées",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const apps = pm.response.json().applications.application.map(a => a.name);",
+                  "pm.test(\"Tous les services sont UP dans Eureka\", () => [\"SERVICE-CLIENTS\",\"SERVICE-CREDIT\",\"SERVICE-DECAISSEMENTS\",\"GATEWAY-SERVICE\",\"CONFIG-SERVER\"].forEach(n => pm.expect(apps).to.include(n)));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8761/eureka/apps",
+              "host": [
+                "http://localhost:8761/eureka/apps"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Config Server - config de service-clients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Fichier service-clients.properties servi\", () => pm.expect(JSON.stringify(pm.response.json().propertySources)).to.include(\"service-clients.properties\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8888/service-clients/default",
+              "host": [
+                "http://localhost:8888/service-clients/default"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Config Server - config de service-credit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8888/service-credit/default",
+              "host": [
+                "http://localhost:8888/service-credit/default"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Config Server - config de service-decaissements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8888/service-decaissements/default",
+              "host": [
+                "http://localhost:8888/service-decaissements/default"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Config Server - config de la gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8888/gateway-service/default",
+              "host": [
+                "http://localhost:8888/gateway-service/default"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Config Server - config gateway (profil statique)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8888/gateway-service/statique",
+              "host": [
+                "http://localhost:8888/gateway-service/statique"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Port chargé depuis le Config Server (service-clients en 8081)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/actuator/health",
+              "host": [
+                "{{clients}}/actuator/health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 - service-clients (direct :8081)",
+      "description": "",
+      "item": [
+        {
+          "name": "Lister les clients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/clients",
+              "host": [
+                "{{clients}}/clients"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consulter le client 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse contient revenusMensuels\", () => pm.expect(pm.response.json()).to.have.property(\"revenusMensuels\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/clients/1",
+              "host": [
+                "{{clients}}/clients/1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Client inexistant -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/clients/9999",
+              "host": [
+                "{{clients}}/clients/9999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Créer un client -> 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"clientId\", pm.response.json().id); }",
+                  "pm.test(\"Statut ACTIF par défaut\", () => pm.expect(pm.response.json().statut).to.eql(\"ACTIF\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/clients",
+              "host": [
+                "{{clients}}/clients"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Omar Test\",\n  \"email\": \"omar.test@mail.ma\",\n  \"revenusMensuels\": 9000,\n  \"scoreInterne\": 600\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Créer un client invalide -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Erreur de validation sur email\", () => pm.expect(pm.response.json().details).to.have.property(\"email\"));",
+                  "pm.test(\"Erreur de validation sur nom\", () => pm.expect(pm.response.json().details).to.have.property(\"nom\"));",
+                  "pm.test(\"Erreur de validation sur revenusMensuels\", () => pm.expect(pm.response.json().details).to.have.property(\"revenusMensuels\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/clients",
+              "host": [
+                "{{clients}}/clients"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"\",\n  \"email\": \"pas-un-email\",\n  \"revenusMensuels\": -5,\n  \"scoreInterne\": 2000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Email déjà utilisé -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/clients",
+              "host": [
+                "{{clients}}/clients"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Omar Test\",\n  \"email\": \"omar.test@mail.ma\",\n  \"revenusMensuels\": 9000,\n  \"scoreInterne\": 600\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Modifier le client créé -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/clients/{{clientId}}",
+              "host": [
+                "{{clients}}/clients/{{clientId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Omar Test Modifié\",\n  \"email\": \"omar.test@mail.ma\",\n  \"revenusMensuels\": 11000,\n  \"scoreInterne\": 600\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Modifier un client inexistant -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/clients/9999",
+              "host": [
+                "{{clients}}/clients/9999"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Omar Test\",\n  \"email\": \"x@mail.ma\",\n  \"revenusMensuels\": 9000,\n  \"scoreInterne\": 600\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Désactiver le client créé -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut INACTIF\", () => pm.expect(pm.response.json().statut).to.eql(\"INACTIF\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/clients/{{clientId}}/desactivation",
+              "host": [
+                "{{clients}}/clients/{{clientId}}/desactivation"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Désactiver deux fois -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/clients/{{clientId}}/desactivation",
+              "host": [
+                "{{clients}}/clients/{{clientId}}/desactivation"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Garantie pour un client inactif -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/garanties",
+              "host": [
+                "{{clients}}/garanties"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"type\": \"EPARGNE\",\n  \"valeur\": 10000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Réactiver le client créé -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/clients/{{clientId}}/activation",
+              "host": [
+                "{{clients}}/clients/{{clientId}}/activation"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lister les garanties",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/garanties",
+              "host": [
+                "{{clients}}/garanties"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Garanties du client 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/clients/1/garanties",
+              "host": [
+                "{{clients}}/clients/1/garanties"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ajouter une garantie -> 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"garantieId\", pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/garanties",
+              "host": [
+                "{{clients}}/garanties"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"type\": \"VEHICULE\",\n  \"valeur\": 80000,\n  \"description\": \"Renault Clio 2023\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Garantie pour un client inexistant -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/garanties",
+              "host": [
+                "{{clients}}/garanties"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 9999,\n  \"type\": \"CAUTION\",\n  \"valeur\": 5000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Garantie invalide (type inconnu) -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/garanties",
+              "host": [
+                "{{clients}}/garanties"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 1,\n  \"type\": \"BITCOIN\",\n  \"valeur\": 5000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Garantie invalide (valeur négative) -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Erreur de validation sur valeur\", () => pm.expect(pm.response.json().details).to.have.property(\"valeur\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/garanties",
+              "host": [
+                "{{clients}}/garanties"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 1,\n  \"type\": \"CAUTION\",\n  \"valeur\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Modifier la garantie -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{clients}}/garanties/{{garantieId}}",
+              "host": [
+                "{{clients}}/garanties/{{garantieId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"type\": \"VEHICULE\",\n  \"valeur\": 75000,\n  \"description\": \"Renault Clio 2023 (décote)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Supprimer un client qui a des garanties -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/clients/{{clientId}}",
+              "host": [
+                "{{clients}}/clients/{{clientId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Supprimer la garantie -> 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/garanties/{{garantieId}}",
+              "host": [
+                "{{clients}}/garanties/{{garantieId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Garantie supprimée -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/garanties/{{garantieId}}",
+              "host": [
+                "{{clients}}/garanties/{{garantieId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Supprimer le client -> 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{clients}}/clients/{{clientId}}",
+              "host": [
+                "{{clients}}/clients/{{clientId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - service-credit (direct :8082)",
+      "description": "",
+      "item": [
+        {
+          "name": "Lister les dossiers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dossiers du client 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits?clientId=1",
+              "host": [
+                "{{credit}}/credits?clientId=1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dossiers EN_ETUDE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits?statut=EN_ETUDE",
+              "host": [
+                "{{credit}}/credits?statut=EN_ETUDE"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Statut inconnu -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits?statut=PERDU",
+              "host": [
+                "{{credit}}/credits?statut=PERDU"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consulter le dossier 3 (DEBLOQUE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/3",
+              "host": [
+                "{{credit}}/credits/3"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Échéancier du dossier 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"12 échéances\", () => pm.expect(pm.response.json().length).to.eql(12));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/3/echeancier",
+              "host": [
+                "{{credit}}/credits/3/echeancier"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dossier inexistant -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/9999",
+              "host": [
+                "{{credit}}/credits/9999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Déposer une demande -> 201 (DEPOSE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"dossierId\", pm.response.json().id); }",
+                  "pm.test(\"Statut DEPOSE\", () => pm.expect(pm.response.json().statut).to.eql(\"DEPOSE\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 2,\n  \"montantDemande\": 25000,\n  \"dureeMois\": 24,\n  \"motif\": \"Achat électroménager\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Demande invalide -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Erreur de validation sur clientId\", () => pm.expect(pm.response.json().details).to.have.property(\"clientId\"));",
+                  "pm.test(\"Erreur de validation sur montantDemande\", () => pm.expect(pm.response.json().details).to.have.property(\"montantDemande\"));",
+                  "pm.test(\"Erreur de validation sur dureeMois\", () => pm.expect(pm.response.json().details).to.have.property(\"dureeMois\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": null,\n  \"montantDemande\": 50,\n  \"dureeMois\": 120\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Modifier la demande DEPOSE -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits/{{dossierId}}",
+              "host": [
+                "{{credit}}/credits/{{dossierId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 2,\n  \"montantDemande\": 30000,\n  \"dureeMois\": 24,\n  \"motif\": \"Achat électroménager\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Modifier un dossier ACCORDE -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits/5",
+              "host": [
+                "{{credit}}/credits/5"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 2,\n  \"montantDemande\": 25000,\n  \"dureeMois\": 24,\n  \"motif\": \"Achat électroménager\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Supprimer un dossier DEBLOQUE -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/3",
+              "host": [
+                "{{credit}}/credits/3"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Supprimer la demande DEPOSE -> 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{dossierId}}",
+              "host": [
+                "{{credit}}/credits/{{dossierId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - service-decaissements (direct :8083)",
+      "description": "",
+      "item": [
+        {
+          "name": "Lister les comptes de trésorerie",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries",
+              "host": [
+                "{{decaissements}}/tresoreries"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consulter le compte 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries/1",
+              "host": [
+                "{{decaissements}}/tresoreries/1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Compte inexistant -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries/9999",
+              "host": [
+                "{{decaissements}}/tresoreries/9999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Créer un compte -> 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"compteId\", pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries",
+              "host": [
+                "{{decaissements}}/tresoreries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libelle\": \"Enveloppe Marrakech\",\n  \"soldeDisponible\": 100000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Libellé déjà utilisé -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries",
+              "host": [
+                "{{decaissements}}/tresoreries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libelle\": \"Enveloppe Marrakech\",\n  \"soldeDisponible\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Compte invalide -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Erreur de validation sur libelle\", () => pm.expect(pm.response.json().details).to.have.property(\"libelle\"));",
+                  "pm.test(\"Erreur de validation sur soldeDisponible\", () => pm.expect(pm.response.json().details).to.have.property(\"soldeDisponible\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries",
+              "host": [
+                "{{decaissements}}/tresoreries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libelle\": \"\",\n  \"soldeDisponible\": -100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Renommer le compte (solde ignoré) -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Le solde n'est pas modifié par PUT\", () => pm.expect(pm.response.json().soldeDisponible).to.eql(100000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries/{{compteId}}",
+              "host": [
+                "{{decaissements}}/tresoreries/{{compteId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libelle\": \"Enveloppe Marrakech-Safi\",\n  \"soldeDisponible\": 999999999\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Approvisionner le compte -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Solde = 150 000\", () => pm.expect(pm.response.json().soldeDisponible).to.eql(150000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries/{{compteId}}/approvisionnement",
+              "host": [
+                "{{decaissements}}/tresoreries/{{compteId}}/approvisionnement"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"montant\": 50000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Approvisionnement négatif -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries/{{compteId}}/approvisionnement",
+              "host": [
+                "{{decaissements}}/tresoreries/{{compteId}}/approvisionnement"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"montant\": -10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Supprimer un compte avec historique -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries/1",
+              "host": [
+                "{{decaissements}}/tresoreries/1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Supprimer le compte créé -> 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries/{{compteId}}",
+              "host": [
+                "{{decaissements}}/tresoreries/{{compteId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lister les décaissements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{decaissements}}/decaissements",
+              "host": [
+                "{{decaissements}}/decaissements"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Décaissements du dossier 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{decaissements}}/decaissements?dossierId=3",
+              "host": [
+                "{{decaissements}}/decaissements?dossierId=3"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Décaissement inexistant -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{decaissements}}/decaissements/9999",
+              "host": [
+                "{{decaissements}}/decaissements/9999"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 - Gateway :8080 - routage dynamique (profil par défaut)",
+      "description": "Lancer la gateway sans profil. Les routes sont créées automatiquement depuis Eureka : /{nom-du-service}/...",
+      "item": [
+        {
+          "name": "Clients via Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/service-clients/clients",
+              "host": [
+                "{{gateway}}/service-clients/clients"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Garanties via Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/service-clients/garanties",
+              "host": [
+                "{{gateway}}/service-clients/garanties"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dossiers via Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/service-credit/credits",
+              "host": [
+                "{{gateway}}/service-credit/credits"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Échéancier via Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/service-credit/credits/3/echeancier",
+              "host": [
+                "{{gateway}}/service-credit/credits/3/echeancier"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Trésoreries via Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/service-decaissements/tresoreries",
+              "host": [
+                "{{gateway}}/service-decaissements/tresoreries"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Créer un client via Gateway -> 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"clientGwId\", pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/service-clients/clients",
+              "host": [
+                "{{gateway}}/service-clients/clients"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Omar Test\",\n  \"email\": \"via.gateway@mail.ma\",\n  \"revenusMensuels\": 9000,\n  \"scoreInterne\": 600\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Erreur 404 propagée par la Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/service-credit/credits/9999",
+              "host": [
+                "{{gateway}}/service-credit/credits/9999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Supprimer le client créé via Gateway -> 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/service-clients/clients/{{clientGwId}}",
+              "host": [
+                "{{gateway}}/service-clients/clients/{{clientGwId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 - Gateway :8080 - routage statique (profil statique)",
+      "description": "Relancer la gateway avec le profil statique (Active profiles: statique). Routes déclarées dans gateway-service-statique.properties, instances résolues via lb://.",
+      "item": [
+        {
+          "name": "Clients (route statique)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/clients",
+              "host": [
+                "{{gateway}}/clients"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Garanties (route statique)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/garanties",
+              "host": [
+                "{{gateway}}/garanties"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dossiers (route statique)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/credits",
+              "host": [
+                "{{gateway}}/credits"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Trésoreries (route statique)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/tresoreries",
+              "host": [
+                "{{gateway}}/tresoreries"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Décaissements (route statique)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/decaissements",
+              "host": [
+                "{{gateway}}/decaissements"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "gateway",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "clients",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "credit",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "decaissements",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "clientId",
+      "value": ""
+    },
+    {
+      "key": "garantieId",
+      "value": ""
+    },
+    {
+      "key": "dossierId",
+      "value": ""
+    },
+    {
+      "key": "compteId",
+      "value": ""
+    },
+    {
+      "key": "clientGwId",
+      "value": ""
+    }
+  ]
+}
