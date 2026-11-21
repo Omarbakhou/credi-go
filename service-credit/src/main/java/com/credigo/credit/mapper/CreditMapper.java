@@ -12,7 +12,7 @@ public class CreditMapper {
 
     public LoanApplicationDto toDto(LoanApplication d) {
         return new LoanApplicationDto(d.getId(), d.getClientId(), d.getMontantDemande(), d.getMontantAccorde(),
-                d.getScoreEtude(), d.getDureeMois(), d.getTauxPropose(), d.getMotif(), d.getStatut());
+                d.getScoreEtude(), d.getDureeMois(), d.getTauxPropose(), d.getMotif(), d.getCommentaireDecision(), d.getStatut());
     }
 
     /** Copie la demande dans le dossier (création, ou modification d'un dossier DEPOSE). */

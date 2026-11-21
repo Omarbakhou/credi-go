@@ -1,8 +1,6 @@
 package com.credigo.credit.controller;
 
-import com.credigo.credit.dto.DemandeCreditDto;
-import com.credigo.credit.dto.LoanApplicationDto;
-import com.credigo.credit.dto.RepaymentScheduleDto;
+import com.credigo.credit.dto.*;
 import com.credigo.credit.enums.StatutDossier;
 import com.credigo.credit.service.CreditService;
 import jakarta.validation.Valid;
@@ -34,20 +32,48 @@ public class CreditController {
         return creditService.consulter(id);
     }
 
+    /** Consultation enrichie (client, garanties, échéancier, décaissements). */
+    @GetMapping("/{id}/details")
+    public DossierDetailDto consulterDetail(@PathVariable Long id) {
+        return creditService.consulterDetail(id);
+    }
+
     @GetMapping("/{id}/echeancier")
     public List<RepaymentScheduleDto> echeancier(@PathVariable Long id) {
         return creditService.echeancier(id);
     }
 
+    /** 201 pour un nouveau dossier, 200 si la même Idempotency-Key a déjà été traitée. */
     @PostMapping
-    public ResponseEntity<LoanApplicationDto> deposer(@Valid @RequestBody DemandeCreditDto dto) {
-        LoanApplicationDto cree = creditService.deposer(dto);
-        return ResponseEntity.created(URI.create("/credits/" + cree.id())).body(cree);
+    public ResponseEntity<LoanApplicationDto> deposer(
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody DemandeCreditDto dto) {
+        ResultatDepot resultat = creditService.deposer(dto, idempotencyKey);
+        if (!resultat.nouveau()) {
+            return ResponseEntity.ok(resultat.dossier());
+        }
+        return ResponseEntity.created(URI.create("/credits/" + resultat.dossier().id())).body(resultat.dossier());
     }
 
     @PutMapping("/{id}")
     public LoanApplicationDto modifier(@PathVariable Long id, @Valid @RequestBody DemandeCreditDto dto) {
         return creditService.modifier(id, dto);
+    }
+
+    @PostMapping("/{id}/etude")
+    public LoanApplicationDto etudier(@PathVariable Long id) {
+        return creditService.etudier(id);
+    }
+
+    @PostMapping("/{id}/decision")
+    public LoanApplicationDto decider(@PathVariable Long id) {
+        return creditService.decider(id);
+    }
+
+    /** Appelé par service-decaissements après le versement effectif des fonds. */
+    @PostMapping("/{id}/deblocage")
+    public LoanApplicationDto debloquer(@PathVariable Long id) {
+        return creditService.debloquer(id);
     }
 
     @DeleteMapping("/{id}")

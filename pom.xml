@@ -25,6 +25,7 @@
         <module>service-clients</module>
         <module>service-credit</module>
         <module>service-decaissements</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>

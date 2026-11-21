@@ -45,6 +45,7 @@ classDiagram
             dureeMois : int
             tauxPropose : BigDecimal
             motif : String
+            commentaireDecision : String
             statut : StatutDossier
         }
         class RepaymentSchedule {
@@ -76,6 +77,7 @@ classDiagram
     namespace service_decaissements {
         class Disbursement {
             id : Long
+            idempotencyKey : String
             loanApplicationId : Long
             treasuryAccountId : Long
             montant : BigDecimal

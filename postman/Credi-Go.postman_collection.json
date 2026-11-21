@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "a96db4b7-9719-44d7-aa63-a14e0648be27",
-    "name": "Credi-Go - V1 à V3",
-    "description": "Scénarios de test sauvegardés : CRUD, validations (400), ressources inexistantes (404), règles métier (409), Eureka, Config Server et Gateway.",
+    "_postman_id": "9f468055-2bad-4d60-8594-722f08037a88",
+    "name": "Credi-Go - V1 à V6",
+    "description": "Scénarios de test sauvegardés : CRUD, validations (400), ressources inexistantes (404), règles métier (409), Eureka, Config Server, Gateway, flux OpenFeign, notifications RabbitMQ, résilience et idempotence.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -20,7 +20,7 @@
                 "exec": [
                   "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
                   "const apps = pm.response.json().applications.application.map(a => a.name);",
-                  "pm.test(\"Tous les services sont UP dans Eureka\", () => [\"SERVICE-CLIENTS\",\"SERVICE-CREDIT\",\"SERVICE-DECAISSEMENTS\",\"GATEWAY-SERVICE\",\"CONFIG-SERVER\"].forEach(n => pm.expect(apps).to.include(n)));"
+                  "pm.test(\"Tous les services sont UP dans Eureka\", () => [\"SERVICE-CLIENTS\",\"SERVICE-CREDIT\",\"SERVICE-DECAISSEMENTS\",\"NOTIFICATION-SERVICE\",\"GATEWAY-SERVICE\",\"CONFIG-SERVER\"].forEach(n => pm.expect(apps).to.include(n)));"
                 ]
               }
             }
@@ -2076,6 +2076,1038 @@
           }
         }
       ]
+    },
+    {
+      "name": "6 - V4 : flux du crédit (OpenFeign)",
+      "description": "Cycle complet DEPOSE -> EN_ETUDE -> ACCORDE -> DEBLOQUE, références distantes vérifiées par OpenFeign avant écriture.",
+      "item": [
+        {
+          "name": "Dépôt pour un client inexistant -> 404 (vérifié via Feign)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 9999,\n  \"montantDemande\": 20000,\n  \"dureeMois\": 24,\n  \"motif\": \"Test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Dépôt pour un client inactif -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 4,\n  \"montantDemande\": 20000,\n  \"dureeMois\": 24,\n  \"motif\": \"Test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Déposer une demande (client 2) -> 201",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"cleDepot\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"fluxDossierId\", pm.response.json().id); }",
+                  "pm.test(\"Statut DEPOSE\", () => pm.expect(pm.response.json().statut).to.eql(\"DEPOSE\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{cleDepot}}"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 2,\n  \"montantDemande\": 25000,\n  \"dureeMois\": 24,\n  \"motif\": \"Achat électroménager\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "V6 - Rejouer le même dépôt (même Idempotency-Key) -> 200, même dossier",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Aucun doublon : même id\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"fluxDossierId\"))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{cleDepot}}"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 2,\n  \"montantDemande\": 25000,\n  \"dureeMois\": 24,\n  \"motif\": \"Achat électroménager\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Décider avant l'étude -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{fluxDossierId}}/decision",
+              "host": [
+                "{{credit}}/credits/{{fluxDossierId}}/decision"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mettre à l'étude -> EN_ETUDE + score relevé via Feign",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut EN_ETUDE\", () => pm.expect(pm.response.json().statut).to.eql(\"EN_ETUDE\"));",
+                  "pm.test(\"Score du client 2 = 650\", () => pm.expect(pm.response.json().scoreEtude).to.eql(650));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{fluxDossierId}}/etude",
+              "host": [
+                "{{credit}}/credits/{{fluxDossierId}}/etude"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Décision -> ACCORDE (taux 6,50 %)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut ACCORDE\", () => pm.expect(pm.response.json().statut).to.eql(\"ACCORDE\"));",
+                  "pm.test(\"Montant accordé 25 000\", () => pm.expect(pm.response.json().montantAccorde).to.eql(25000));",
+                  "pm.test(\"Taux 6,50 %\", () => pm.expect(pm.response.json().tauxPropose).to.eql(6.5));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{fluxDossierId}}/decision",
+              "host": [
+                "{{credit}}/credits/{{fluxDossierId}}/decision"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Échéancier généré mais INACTIF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"24 échéances INACTIVE\", () => { const e = pm.response.json(); pm.expect(e.length).to.eql(24); e.forEach(x => pm.expect(x.statut).to.eql(\"INACTIVE\")); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{fluxDossierId}}/echeancier",
+              "host": [
+                "{{credit}}/credits/{{fluxDossierId}}/echeancier"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Versement d'un dossier non accordé (dossier 1) -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/decaissements",
+              "host": [
+                "{{decaissements}}/decaissements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanApplicationId\": 1,\n  \"treasuryAccountId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Versement sur un compte au solde insuffisant -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/decaissements",
+              "host": [
+                "{{decaissements}}/decaissements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanApplicationId\": \"{{fluxDossierId}}\",\n  \"treasuryAccountId\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Versement sur un dossier inexistant -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/decaissements",
+              "host": [
+                "{{decaissements}}/decaissements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanApplicationId\": 9999,\n  \"treasuryAccountId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verser les fonds -> 201 VERSE",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"cleVersement\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"fluxVersementId\", pm.response.json().id); }",
+                  "pm.test(\"Statut VERSE\", () => pm.expect(pm.response.json().statut).to.eql(\"VERSE\"));",
+                  "pm.test(\"Montant = montant accordé\", () => pm.expect(pm.response.json().montant).to.eql(25000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{cleVersement}}"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/decaissements",
+              "host": [
+                "{{decaissements}}/decaissements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanApplicationId\": \"{{fluxDossierId}}\",\n  \"treasuryAccountId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "V6 - Rejouer le versement (même Idempotency-Key) -> 200, même versement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Aucun double versement : même id\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"fluxVersementId\"))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{cleVersement}}"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/decaissements",
+              "host": [
+                "{{decaissements}}/decaissements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanApplicationId\": \"{{fluxDossierId}}\",\n  \"treasuryAccountId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Second versement (nouvelle clé) -> 409 : versé une seule fois",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/decaissements",
+              "host": [
+                "{{decaissements}}/decaissements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanApplicationId\": \"{{fluxDossierId}}\",\n  \"treasuryAccountId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Trésorerie débitée une seule fois (500 000 - 25 000)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Solde = 475 000\", () => pm.expect(pm.response.json().soldeDisponible).to.eql(475000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{decaissements}}/tresoreries/1",
+              "host": [
+                "{{decaissements}}/tresoreries/1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dossier DEBLOQUE après versement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut DEBLOQUE\", () => pm.expect(pm.response.json().statut).to.eql(\"DEBLOQUE\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{fluxDossierId}}",
+              "host": [
+                "{{credit}}/credits/{{fluxDossierId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Échéancier activé (A_PAYER)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Échéances A_PAYER\", () => pm.response.json().forEach(x => pm.expect(x.statut).to.eql(\"A_PAYER\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{fluxDossierId}}/echeancier",
+              "host": [
+                "{{credit}}/credits/{{fluxDossierId}}/echeancier"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultation enrichie (DTO composé via Feign)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json();",
+                  "pm.test(\"Client agrégé\", () => pm.expect(d.client.email).to.eql(\"salma.bennani@mail.ma\"));",
+                  "pm.test(\"Garanties agrégées\", () => pm.expect(d.garanties.length).to.be.above(0));",
+                  "pm.test(\"Échéancier local\", () => pm.expect(d.echeancier.length).to.eql(24));",
+                  "pm.test(\"Décaissement agrégé\", () => pm.expect(d.decaissements.length).to.eql(1));",
+                  "pm.test(\"Données complètes\", () => pm.expect(d.donneesPartielles).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{fluxDossierId}}/details",
+              "host": [
+                "{{credit}}/credits/{{fluxDossierId}}/details"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultation enrichie via la Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/service-credit/credits/{{fluxDossierId}}/details",
+              "host": [
+                "{{gateway}}/service-credit/credits/{{fluxDossierId}}/details"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refus - déposer pour le client 3 (score 480)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"dossierRefusId\", pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 3,\n  \"montantDemande\": 40000,\n  \"dureeMois\": 36,\n  \"motif\": \"Achat moto\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Refus - mise à l'étude",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{dossierRefusId}}/etude",
+              "host": [
+                "{{credit}}/credits/{{dossierRefusId}}/etude"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refus - décision -> REFUSE (score insuffisant)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut REFUSE\", () => pm.expect(pm.response.json().statut).to.eql(\"REFUSE\"));",
+                  "pm.test(\"Motif de refus\", () => pm.expect(pm.response.json().commentaireDecision).to.include(\"Score insuffisant\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/{{dossierRefusId}}/decision",
+              "host": [
+                "{{credit}}/credits/{{dossierRefusId}}/decision"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7 - V5 : notifications RabbitMQ",
+      "description": "Prérequis : docker compose up -d (RabbitMQ + MailHog). Boîte de réception : http://localhost:8025 ; file RabbitMQ : http://localhost:15672.",
+      "item": [
+        {
+          "name": "Attendre la consommation des messages (2 s)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(() => {}, 2000);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{notifications}}/actuator/health",
+              "host": [
+                "{{notifications}}/actuator/health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Notifications reçues par notification-service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const n = pm.response.json().filter(x => x.dossierId === Number(pm.collectionVariables.get(\"fluxDossierId\")));",
+                  "pm.test(\"Accord notifié (LOAN_APPROVED)\", () => pm.expect(n.map(x => x.evenement)).to.include(\"LOAN_APPROVED\"));",
+                  "pm.test(\"Versement notifié (DISBURSEMENT_PAID)\", () => pm.expect(n.map(x => x.evenement)).to.include(\"DISBURSEMENT_PAID\"));",
+                  "pm.test(\"Emails envoyés\", () => n.forEach(x => pm.expect(x.statut).to.eql(\"ENVOYE\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{notifications}}/notifications",
+              "host": [
+                "{{notifications}}/notifications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Emails présents dans MailHog",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Au moins 2 emails\", () => pm.expect(pm.response.json().total).to.be.at.least(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8025/api/v2/messages",
+              "host": [
+                "http://localhost:8025/api/v2/messages"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Notifications via la Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/notification-service/notifications",
+              "host": [
+                "{{gateway}}/notification-service/notifications"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8 - V6 : résilience (à lancer manuellement)",
+      "description": "Arrêter le service indiqué entre crochets dans IntelliJ, lancer la requête, puis le redémarrer. Après plusieurs échecs, /actuator/circuitbreakers montre le circuit OPEN.",
+      "item": [
+        {
+          "name": "État des circuit breakers de service-credit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/actuator/circuitbreakers",
+              "host": [
+                "{{credit}}/actuator/circuitbreakers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[service-clients ARRÊTÉ] Dépôt -> 503 après 3 tentatives",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 503\", () => pm.response.to.have.status(503));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 2,\n  \"montantDemande\": 15000,\n  \"dureeMois\": 12,\n  \"motif\": \"Test résilience\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[service-clients ARRÊTÉ] Consultation enrichie -> 200, données partielles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Réponse partielle\", () => pm.expect(pm.response.json().donneesPartielles).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{credit}}/credits/3/details",
+              "host": [
+                "{{credit}}/credits/3/details"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[service-credit ARRÊTÉ] Versement -> 503",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 503\", () => pm.response.to.have.status(503));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{decaissements}}/decaissements",
+              "host": [
+                "{{decaissements}}/decaissements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanApplicationId\": 5,\n  \"treasuryAccountId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Erreur centralisée : JSON illisible -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{credit}}/credits",
+              "host": [
+                "{{credit}}/credits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [
@@ -2094,6 +3126,30 @@
     {
       "key": "decaissements",
       "value": "http://localhost:8083"
+    },
+    {
+      "key": "notifications",
+      "value": "http://localhost:8084"
+    },
+    {
+      "key": "cleDepot",
+      "value": ""
+    },
+    {
+      "key": "cleVersement",
+      "value": ""
+    },
+    {
+      "key": "fluxDossierId",
+      "value": ""
+    },
+    {
+      "key": "fluxVersementId",
+      "value": ""
+    },
+    {
+      "key": "dossierRefusId",
+      "value": ""
     },
     {
       "key": "clientId",

@@ -1,0 +1,18 @@
+# Infrastructure de messagerie pour les jalons V5/V6 : docker compose up -d
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: credigo-rabbitmq
+    ports:
+      - "5672:5672"     # AMQP (services Spring)
+      - "15672:15672"   # Interface d'administration : http://localhost:15672 (credigo / credigo123)
+    environment:
+      RABBITMQ_DEFAULT_USER: credigo
+      RABBITMQ_DEFAULT_PASS: credigo123
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: credigo-mailhog
+    ports:
+      - "1025:1025"     # SMTP (notification-service)
+      - "8025:8025"     # Boîte de réception web : http://localhost:8025

@@ -32,6 +32,11 @@ public class GlobalExceptionHandler {
         return reponse(HttpStatus.CONFLICT, ex.getMessage(), req, null);
     }
 
+    @ExceptionHandler(ServiceExterneIndisponibleException.class)
+    public ResponseEntity<ErreurResponse> indisponible(ServiceExterneIndisponibleException ex, HttpServletRequest req) {
+        return reponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), req, null);
+    }
+
     /** Échec de @Valid sur le corps de la requête : liste des champs invalides. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErreurResponse> validation(MethodArgumentNotValidException ex, HttpServletRequest req) {

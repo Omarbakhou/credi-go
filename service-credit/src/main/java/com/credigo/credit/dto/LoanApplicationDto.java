@@ -13,6 +13,7 @@ public record LoanApplicationDto(
         int dureeMois,
         BigDecimal tauxPropose,
         String motif,
+        String commentaireDecision,
         StatutDossier statut
 ) {
 }

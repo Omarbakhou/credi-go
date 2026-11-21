@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
  * Versement d'un crédit. loanApplicationId référence un dossier du service-credit
  * (simple identifiant, sans association JPA inter-services) ; le compte de trésorerie
  * appartient au même service (association locale).
- * Création et cycle de vie implémentés au jalon V4.
  */
 @Entity
 @Table(name = "disbursement")
@@ -19,6 +18,10 @@ public class Disbursement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Clé d'idempotence fournie par l'appelant (en-tête Idempotency-Key). */
+    @Column(unique = true)
+    private String idempotencyKey;
 
     @Column(nullable = false)
     private Long loanApplicationId;
@@ -42,6 +45,9 @@ public class Disbursement {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public String getIdempotencyKey() { return idempotencyKey; }
+    public void setIdempotencyKey(String idempotencyKey) { this.idempotencyKey = idempotencyKey; }
 
     public Long getLoanApplicationId() { return loanApplicationId; }
     public void setLoanApplicationId(Long loanApplicationId) { this.loanApplicationId = loanApplicationId; }

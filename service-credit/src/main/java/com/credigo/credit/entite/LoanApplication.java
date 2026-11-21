@@ -41,7 +41,11 @@ public class LoanApplication {
     @Column(precision = 5, scale = 2)
     private BigDecimal tauxPropose;
 
+    /** Objet du crédit (ex. achat véhicule). */
     private String motif;
+
+    /** Justification de la décision (accord total/partiel ou motif de refus). */
+    private String commentaireDecision;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -80,6 +84,9 @@ public class LoanApplication {
 
     public String getMotif() { return motif; }
     public void setMotif(String motif) { this.motif = motif; }
+
+    public String getCommentaireDecision() { return commentaireDecision; }
+    public void setCommentaireDecision(String commentaireDecision) { this.commentaireDecision = commentaireDecision; }
 
     public StatutDossier getStatut() { return statut; }
     public void setStatut(StatutDossier statut) { this.statut = statut; }

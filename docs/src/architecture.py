@@ -3,8 +3,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, Ellipse, Rectangle
 
-fig, ax = plt.subplots(figsize=(15.5, 9), dpi=160)
-ax.set_xlim(0, 15.6); ax.set_ylim(0, 9); ax.axis("off")
+fig, ax = plt.subplots(figsize=(15.5, 11.6), dpi=160)
+ax.set_xlim(0, 15.6); ax.set_ylim(-2.9, 9); ax.axis("off")
 
 def box(x, y, w, h, color, title, sub=None, port=None, fs=13):
     ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.02,rounding_size=0.12",
@@ -33,7 +33,7 @@ def arrow(x1, y1, x2, y2, color, ls="-", lw=1.8, both=False):
 ax.text(7.75, 8.75, "Credi-Go — Architecture micro-services", ha="center", fontsize=16, weight="bold")
 
 # System container
-ax.add_patch(FancyBboxPatch((3.0, 0.3), 12.45, 8.0, boxstyle="round,pad=0.02,rounding_size=0.2",
+ax.add_patch(FancyBboxPatch((3.0, -2.7), 12.45, 11.0, boxstyle="round,pad=0.02,rounding_size=0.2",
                             fc="#EAF4FC", ec="#B8D8F0", lw=1.5))
 
 # Client
@@ -88,10 +88,29 @@ ax.plot([4.7, 4.7], [4.25, 7.3], color="#4C9A2A", lw=1.6, ls="--")
 arrow(4.7, 7.3, 7.9, 7.3, "#4C9A2A", ls="--", lw=1.6)
 ax.text(4.85, 7.4, "découverte (lb://)", fontsize=9, color="#4C9A2A")
 
+# V5 : messagerie asynchrone
+box(7.9, -1.65, 2.3, 1.2, "#E5832A", "RabbitMQ", "file email", ":5672", fs=12)
+box(10.75, -1.65, 2.55, 1.2, "#0B6FD0", "notification-service", "consumer", ":8084", fs=11.5)
+box(13.6, -1.65, 1.65, 1.2, "#6B7280", "MailHog", "SMTP test", ":8025", fs=11.5)
+ax.plot([9.05, 9.05], [svc[2][0], -0.5], color="#E5832A", lw=1.6, ls="--")
+ax.annotate("", xy=(9.05, -0.45), xytext=(9.05, -0.15), arrowprops=dict(arrowstyle="-|>", color="#E5832A", lw=1.6, mutation_scale=14))
+ax.text(9.15, 0.35, "publie LOAN_APPROVED (service-credit)\net DISBURSEMENT_PAID (service-decaissements)", fontsize=8.5, color="#E5832A", va="center")
+arrow(10.2, -1.05, 10.75, -1.05, "#E5832A", ls="--")
+arrow(13.3, -1.05, 13.6, -1.05, "#6B7280")
+
+# V4 : appels synchrones OpenFeign entre services métier
+for (y_haut, y_bas, txt) in [(svc[0][0], svc[1][0] + sh, "OpenFeign : client, score, garanties"),
+                             (svc[1][0], svc[2][0] + sh, "OpenFeign : dossier accordé, déblocage")]:
+    ax.annotate("", xy=(10.4, y_haut), xytext=(10.4, y_bas),
+                arrowprops=dict(arrowstyle="-|>", color="#C2410C", lw=1.8, mutation_scale=14))
+    ax.text(10.5, (y_haut + y_bas) / 2, txt, fontsize=8.5, color="#C2410C", va="center")
+
 # Legend
-ax.plot([3.3, 3.8], [0.6, 0.6], color="#2E6FB7", lw=1.8); ax.text(3.9, 0.6, "routage HTTP via la Gateway", va="center", fontsize=9)
-ax.plot([6.8, 7.3], [0.6, 0.6], color="#4C9A2A", lw=1.6, ls="--"); ax.text(7.4, 0.6, "service discovery (Eureka)", va="center", fontsize=9)
-ax.plot([10.1, 10.6], [0.6, 0.6], color="#0D2A8A", lw=1.8); ax.text(10.7, 0.6, "base propre au service", va="center", fontsize=9)
-ax.plot([13.0, 13.5], [0.6, 0.6], color="#7E5FA6", lw=1.4, ls=":"); ax.text(13.6, 0.6, "configuration", va="center", fontsize=9)
+ax.plot([3.3, 3.8], [-2.15, -2.15], color="#2E6FB7", lw=1.8); ax.text(3.9, -2.15, "routage HTTP via la Gateway", va="center", fontsize=9)
+ax.plot([6.8, 7.3], [-2.15, -2.15], color="#4C9A2A", lw=1.6, ls="--"); ax.text(7.4, -2.15, "service discovery (Eureka)", va="center", fontsize=9)
+ax.plot([10.1, 10.6], [-2.15, -2.15], color="#0D2A8A", lw=1.8); ax.text(10.7, -2.15, "base propre au service", va="center", fontsize=9)
+ax.plot([13.0, 13.5], [-2.15, -2.15], color="#7E5FA6", lw=1.4, ls=":"); ax.text(13.6, -2.15, "configuration", va="center", fontsize=9)
+ax.plot([3.3, 3.8], [-2.45, -2.45], color="#C2410C", lw=1.8); ax.text(3.9, -2.45, "appel synchrone OpenFeign", va="center", fontsize=9)
+ax.plot([6.8, 7.3], [-2.45, -2.45], color="#E5832A", lw=1.6, ls="--"); ax.text(7.4, -2.45, "message asynchrone (RabbitMQ)", va="center", fontsize=9)
 
 plt.savefig("architecture.png", bbox_inches="tight", facecolor="white")
