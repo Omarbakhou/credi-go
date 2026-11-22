@@ -30,7 +30,7 @@ def arrow(x1, y1, x2, y2, color, ls="-", lw=1.8, both=False):
                                 shrinkA=0, shrinkB=0, mutation_scale=14))
 
 # Title
-ax.text(7.75, 8.75, "Credi-Go — Architecture micro-services", ha="center", fontsize=16, weight="bold")
+ax.text(7.75, 8.75, "Credi-Go — Architecture micro-services (V7 : événements Kafka)", ha="center", fontsize=16, weight="bold")
 
 # System container
 ax.add_patch(FancyBboxPatch((3.0, -2.7), 12.45, 11.0, boxstyle="round,pad=0.02,rounding_size=0.2",
@@ -88,29 +88,40 @@ ax.plot([4.7, 4.7], [4.25, 7.3], color="#4C9A2A", lw=1.6, ls="--")
 arrow(4.7, 7.3, 7.9, 7.3, "#4C9A2A", ls="--", lw=1.6)
 ax.text(4.85, 7.4, "découverte (lb://)", fontsize=9, color="#4C9A2A")
 
-# V5 : messagerie asynchrone
-box(7.9, -1.65, 2.3, 1.2, "#E5832A", "RabbitMQ", "file email", ":5672", fs=12)
-box(10.75, -1.65, 2.55, 1.2, "#0B6FD0", "notification-service", "consumer", ":8084", fs=11.5)
-box(13.6, -1.65, 1.65, 1.2, "#6B7280", "MailHog", "SMTP test", ":8025", fs=11.5)
-ax.plot([9.05, 9.05], [svc[2][0], -0.5], color="#E5832A", lw=1.6, ls="--")
-ax.annotate("", xy=(9.05, -0.45), xytext=(9.05, -0.15), arrowprops=dict(arrowstyle="-|>", color="#E5832A", lw=1.6, mutation_scale=14))
-ax.text(9.15, 0.35, "publie LOAN_APPROVED (service-credit)\net DISBURSEMENT_PAID (service-decaissements)", fontsize=8.5, color="#E5832A", va="center")
-arrow(10.2, -1.05, 10.75, -1.05, "#E5832A", ls="--")
-arrow(13.3, -1.05, 13.6, -1.05, "#6B7280")
+# V7 : bus d'événements Kafka (mode KRaft) — remplace OpenFeign (V4) et RabbitMQ (V5)
+KAFKA = "#231F20"
+EVT = "#C2410C"
+box(7.9, -1.75, 3.0, 1.4, KAFKA, "Kafka (KRaft)", "6 topics, sans Zookeeper", ":9092", fs=12.5)
+box(11.3, -1.65, 2.25, 1.2, "#0B6FD0", "notification-service", "consumer Kafka", ":8084", fs=11)
+box(13.85, -1.65, 1.45, 1.2, "#6B7280", "MailHog", "SMTP test", ":8025", fs=11)
+box(3.55, -1.65, 2.3, 1.2, "#5B5B5B", "Kafka UI", "topics, messages", ":8090", fs=12)
+arrow(5.85, -1.05, 7.9, -1.05, "#5B5B5B", ls=":", lw=1.4)
+# service-decaissements (et, par son intermédiaire visuel, les autres services) <-> Kafka
+arrow(9.4, svc[2][0], 9.4, -0.35, KAFKA, ls="--", lw=1.6, both=True)
+ax.text(9.5, 0.4, "publication fiable (transactional outbox)\nconsommation idempotente (eventId traités)",
+        fontsize=8.5, color=KAFKA, va="center")
+arrow(10.9, -1.05, 11.3, -1.05, KAFKA, ls="--")
+ax.text(11.0, -0.2, "loan-approved\ndisbursement-paid", fontsize=8, color=KAFKA, va="center")
+arrow(13.55, -1.05, 13.85, -1.05, "#6B7280")
 
-# V4 : appels synchrones OpenFeign entre services métier
-for (y_haut, y_bas, txt) in [(svc[0][0], svc[1][0] + sh, "OpenFeign : client, score, garanties"),
-                             (svc[1][0], svc[2][0] + sh, "OpenFeign : dossier accordé, déblocage")]:
-    ax.annotate("", xy=(10.4, y_haut), xytext=(10.4, y_bas),
-                arrowprops=dict(arrowstyle="-|>", color="#C2410C", lw=1.8, mutation_scale=14))
-    ax.text(10.5, (y_haut + y_bas) / 2, txt, fontsize=8.5, color="#C2410C", va="center")
+# Événements métier échangés entre services (via Kafka, aucun appel HTTP direct)
+for (y_haut, y_bas, montant, descendant) in [
+        (svc[0][0], svc[1][0] + sh, "application-deposited", "client-scored + client-events"),
+        (svc[1][0], svc[2][0] + sh, "disbursement-paid / -failed", "loan-approved")]:
+    ax.annotate("", xy=(8.15, y_haut), xytext=(8.15, y_bas),
+                arrowprops=dict(arrowstyle="-|>", color=EVT, lw=1.6, ls="--", mutation_scale=13))
+    ax.text(8.25, (y_haut + y_bas) / 2, montant, fontsize=8.3, color=EVT, va="center")
+    ax.annotate("", xy=(10.75, y_bas), xytext=(10.75, y_haut),
+                arrowprops=dict(arrowstyle="-|>", color=EVT, lw=1.6, ls="--", mutation_scale=13))
+    ax.text(10.85, (y_haut + y_bas) / 2, descendant, fontsize=8.3, color=EVT, va="center")
 
 # Legend
 ax.plot([3.3, 3.8], [-2.15, -2.15], color="#2E6FB7", lw=1.8); ax.text(3.9, -2.15, "routage HTTP via la Gateway", va="center", fontsize=9)
 ax.plot([6.8, 7.3], [-2.15, -2.15], color="#4C9A2A", lw=1.6, ls="--"); ax.text(7.4, -2.15, "service discovery (Eureka)", va="center", fontsize=9)
 ax.plot([10.1, 10.6], [-2.15, -2.15], color="#0D2A8A", lw=1.8); ax.text(10.7, -2.15, "base propre au service", va="center", fontsize=9)
 ax.plot([13.0, 13.5], [-2.15, -2.15], color="#7E5FA6", lw=1.4, ls=":"); ax.text(13.6, -2.15, "configuration", va="center", fontsize=9)
-ax.plot([3.3, 3.8], [-2.45, -2.45], color="#C2410C", lw=1.8); ax.text(3.9, -2.45, "appel synchrone OpenFeign", va="center", fontsize=9)
-ax.plot([6.8, 7.3], [-2.45, -2.45], color="#E5832A", lw=1.6, ls="--"); ax.text(7.4, -2.45, "message asynchrone (RabbitMQ)", va="center", fontsize=9)
+ax.plot([3.3, 3.8], [-2.45, -2.45], color="#C2410C", lw=1.6, ls="--"); ax.text(3.9, -2.45, "événement métier (topic Kafka)", va="center", fontsize=9)
+ax.plot([6.8, 7.3], [-2.45, -2.45], color="#231F20", lw=1.6, ls="--"); ax.text(7.4, -2.45, "publication / consommation Kafka", va="center", fontsize=9)
+ax.text(10.75, -2.45, "branche v7-kafka (V7) : OpenFeign et RabbitMQ retirés", va="center", fontsize=9, style="italic")
 
 plt.savefig("architecture.png", bbox_inches="tight", facecolor="white")

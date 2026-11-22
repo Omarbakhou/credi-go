@@ -1,14 +1,37 @@
-# Infrastructure de messagerie pour les jalons V5/V6 : docker compose up -d
+# Infrastructure de messagerie du jalon V7 : docker compose up -d
+# Kafka en mode KRaft (pas de Zookeeper) + interface web Kafka UI + serveur SMTP de test MailHog
 services:
-  rabbitmq:
-    image: rabbitmq:3.13-management
-    container_name: credigo-rabbitmq
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: credigo-kafka
     ports:
-      - "5672:5672"     # AMQP (services Spring)
-      - "15672:15672"   # Interface d'administration : http://localhost:15672 (credigo / credigo123)
+      - "9092:9092"     # listener des applications Spring (hôte)
     environment:
-      RABBITMQ_DEFAULT_USER: credigo
-      RABBITMQ_DEFAULT_PASS: credigo123
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller             # mode KRaft : broker et contrôleur dans le même nœud
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://:29092,CONTROLLER://:9093,PLAINTEXT_HOST://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"            # topics .DLT créés à la première lettre morte
+
+  kafka-ui:
+    image: kafbat/kafka-ui:v1.1.0
+    container_name: credigo-kafka-ui
+    ports:
+      - "8090:8080"     # Interface web : http://localhost:8090 (topics, messages, consumer groups)
+    environment:
+      KAFKA_CLUSTERS_0_NAME: credigo
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    depends_on:
+      - kafka
 
   mailhog:
     image: mailhog/mailhog

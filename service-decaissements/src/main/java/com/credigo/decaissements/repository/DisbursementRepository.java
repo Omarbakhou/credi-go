@@ -1,20 +1,21 @@
 package com.credigo.decaissements.repository;
 
 import com.credigo.decaissements.entite.Disbursement;
+import com.credigo.decaissements.enums.StatutDecaissement;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.credigo.decaissements.enums.StatutDecaissement;
-
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 public interface DisbursementRepository extends JpaRepository<Disbursement, Long> {
 
     boolean existsByTreasuryAccountId(Long treasuryAccountId);
 
-    List<Disbursement> findByLoanApplicationId(Long loanApplicationId);
+    List<Disbursement> findByLoanApplicationIdOrderById(Long loanApplicationId);
 
-    boolean existsByLoanApplicationIdAndStatut(Long loanApplicationId, StatutDecaissement statut);
+    /** Un dossier n'a jamais plus d'un décaissement RESERVE ou VERSE. */
+    boolean existsByLoanApplicationIdAndStatutIn(Long loanApplicationId, Collection<StatutDecaissement> statuts);
 
-    Optional<Disbursement> findByIdempotencyKey(String idempotencyKey);
+    List<Disbursement> findByStatutAndDateExpirationBefore(StatutDecaissement statut, LocalDateTime limite);
 }

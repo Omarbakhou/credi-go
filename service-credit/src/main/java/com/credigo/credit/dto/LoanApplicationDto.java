@@ -4,6 +4,7 @@ import com.credigo.credit.enums.StatutDossier;
 
 import java.math.BigDecimal;
 
+/** V7 : correlationId du processus, état du décaissement (à reprendre après un échec). */
 public record LoanApplicationDto(
         Long id,
         Long clientId,
@@ -14,6 +15,10 @@ public record LoanApplicationDto(
         BigDecimal tauxPropose,
         String motif,
         String commentaireDecision,
-        StatutDossier statut
+        StatutDossier statut,
+        String correlationId,
+        int tentativeDecaissement,
+        boolean decaissementAReprendre,
+        String motifEchecDecaissement
 ) {
 }

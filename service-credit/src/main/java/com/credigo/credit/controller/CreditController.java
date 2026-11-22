@@ -32,7 +32,7 @@ public class CreditController {
         return creditService.consulter(id);
     }
 
-    /** Consultation enrichie (client, garanties, échéancier, décaissements). */
+    /** Consultation enrichie (client, garanties, échéancier, décaissements) depuis les projections locales. */
     @GetMapping("/{id}/details")
     public DossierDetailDto consulterDetail(@PathVariable Long id) {
         return creditService.consulterDetail(id);
@@ -43,7 +43,10 @@ public class CreditController {
         return creditService.echeancier(id);
     }
 
-    /** 201 pour un nouveau dossier, 200 si la même Idempotency-Key a déjà été traitée. */
+    /**
+     * 201 pour un nouveau dossier, 200 si la même Idempotency-Key a déjà été traitée.
+     * V7 : le dépôt publie application-deposited ; le dossier passe EN_ETUDE à la réception du score.
+     */
     @PostMapping
     public ResponseEntity<LoanApplicationDto> deposer(
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
@@ -55,25 +58,28 @@ public class CreditController {
         return ResponseEntity.created(URI.create("/credits/" + resultat.dossier().id())).body(resultat.dossier());
     }
 
+    /** Modification d'une demande DEPOSE : nouvelle version, donc nouveau scoring. */
     @PutMapping("/{id}")
     public LoanApplicationDto modifier(@PathVariable Long id, @Valid @RequestBody DemandeCreditDto dto) {
         return creditService.modifier(id, dto);
     }
 
-    @PostMapping("/{id}/etude")
-    public LoanApplicationDto etudier(@PathVariable Long id) {
-        return creditService.etudier(id);
-    }
-
+    /** Décision sur un dossier EN_ETUDE ; un accord publie loan-approved. */
     @PostMapping("/{id}/decision")
     public LoanApplicationDto decider(@PathVariable Long id) {
         return creditService.decider(id);
     }
 
-    /** Appelé par service-decaissements après le versement effectif des fonds. */
-    @PostMapping("/{id}/deblocage")
-    public LoanApplicationDto debloquer(@PathVariable Long id) {
-        return creditService.debloquer(id);
+    /** Annulation d'une demande DEPOSE ou EN_ETUDE : un score reçu ensuite ne la réactive pas. */
+    @PostMapping("/{id}/annulation")
+    public LoanApplicationDto annuler(@PathVariable Long id) {
+        return creditService.annuler(id);
+    }
+
+    /** Relance du décaissement après un disbursement-failed (dossier ACCORDE, décaissement à reprendre). */
+    @PostMapping("/{id}/relance-decaissement")
+    public LoanApplicationDto relancerDecaissement(@PathVariable Long id) {
+        return creditService.relancerDecaissement(id);
     }
 
     @DeleteMapping("/{id}")

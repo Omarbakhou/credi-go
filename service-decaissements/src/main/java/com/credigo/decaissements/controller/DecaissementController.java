@@ -1,16 +1,15 @@
 package com.credigo.decaissements.controller;
 
-import com.credigo.decaissements.dto.DemandeDecaissementDto;
 import com.credigo.decaissements.dto.DisbursementDto;
-import com.credigo.decaissements.dto.ResultatDecaissement;
 import com.credigo.decaissements.service.DecaissementService;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
+/**
+ * V7 : les décaissements sont créés (RESERVE) à la réception de loan-approved, et non plus par POST.
+ * Le versement effectif et l'annulation sont des opérations sur un décaissement existant.
+ */
 @RestController
 @RequestMapping("/decaissements")
 public class DecaissementController {
@@ -32,16 +31,15 @@ public class DecaissementController {
         return decaissementService.consulter(id);
     }
 
-    /** Versement : 201 pour un nouveau versement, 200 si la même Idempotency-Key a déjà été traitée. */
-    @PostMapping
-    public ResponseEntity<DisbursementDto> verser(
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody DemandeDecaissementDto demande) {
-        ResultatDecaissement resultat = decaissementService.verser(demande, idempotencyKey);
-        if (!resultat.nouveau()) {
-            return ResponseEntity.ok(resultat.decaissement());
-        }
-        return ResponseEntity.created(URI.create("/decaissements/" + resultat.decaissement().id()))
-                .body(resultat.decaissement());
+    /** Versement des fonds réservés : VERSE + disbursement-paid. Idempotent (200 si déjà versé). */
+    @PostMapping("/{id}/versement")
+    public DisbursementDto verser(@PathVariable Long id) {
+        return decaissementService.verser(id);
+    }
+
+    /** Annulation d'une réservation non versée : fonds libérés + disbursement-failed. */
+    @PostMapping("/{id}/annulation")
+    public DisbursementDto annuler(@PathVariable Long id) {
+        return decaissementService.annuler(id);
     }
 }

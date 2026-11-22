@@ -8,7 +8,8 @@ import java.math.BigDecimal;
 
 /**
  * soldeDisponible n'est pris en compte qu'à la création (solde initial, 0 par défaut) :
- * ensuite il évolue uniquement par approvisionnement ou décaissement.
+ * ensuite il évolue uniquement par approvisionnement, réservation ou libération de fonds.
+ * montantReserve (lecture seule, V7) : fonds réservés pour des décaissements pas encore versés.
  */
 public record TreasuryAccountDto(
         Long id,
@@ -18,6 +19,8 @@ public record TreasuryAccountDto(
         String libelle,
 
         @PositiveOrZero(message = "Le solde initial doit être positif ou nul")
-        BigDecimal soldeDisponible
+        BigDecimal soldeDisponible,
+
+        BigDecimal montantReserve
 ) {
 }

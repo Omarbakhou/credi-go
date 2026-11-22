@@ -4,6 +4,7 @@ import com.credigo.credit.entite.LoanApplication;
 import com.credigo.credit.enums.StatutDossier;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,4 +15,6 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     List<LoanApplication> findByStatut(StatutDossier statut);
 
     Optional<LoanApplication> findByIdempotencyKey(String idempotencyKey);
+
+    List<LoanApplication> findByStatutAndDateDepotBefore(StatutDossier statut, LocalDateTime limite);
 }

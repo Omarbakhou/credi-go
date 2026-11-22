@@ -2,6 +2,7 @@ package com.credigo.clients.entite;
 
 import com.credigo.clients.enums.StatutClient;
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,6 +32,15 @@ public class Client {
     @Column(nullable = false)
     private StatutClient statut;
 
+    /**
+     * Version des événements client-events (V7), strictement croissante : max(version + 1, horodatage).
+     * L'horodatage garantit qu'un état republié après un redémarrage (base H2 réinitialisée)
+     * reste plus récent que les événements déjà présents dans Kafka.
+     */
+    @ColumnDefault("0")
+    @Column(name = "version_client")
+    private long version;
+
     /** Relation locale au service : les garanties appartiennent au même service. */
     @OneToMany(mappedBy = "client")
     private List<Collateral> garanties = new ArrayList<>();
@@ -57,4 +67,12 @@ public class Client {
     public void setStatut(StatutClient statut) { this.statut = statut; }
 
     public List<Collateral> getGaranties() { return garanties; }
+
+    public long getVersion() { return version; }
+
+    /** Nouvelle version avant chaque publication d'un événement client. */
+    public long incrementerVersion() {
+        version = Math.max(version + 1, System.currentTimeMillis());
+        return version;
+    }
 }

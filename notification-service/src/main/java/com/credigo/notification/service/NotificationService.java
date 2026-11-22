@@ -1,63 +1,85 @@
 package com.credigo.notification.service;
 
-import com.credigo.notification.messaging.NotificationEmailDto;
+import com.credigo.notification.entite.Notification;
+import com.credigo.notification.messaging.ConsommateurIdempotent;
+import com.credigo.notification.messaging.EvenementIllisibleException;
+import com.credigo.notification.messaging.EvenementMetier;
+import com.credigo.notification.messaging.donnees.CreditAccordeDonnees;
+import com.credigo.notification.messaging.donnees.VersementEffectueDonnees;
+import com.credigo.notification.repository.NotificationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Envoi des emails (serveur SMTP de test MailHog, interface web http://localhost:8025)
- * et journal en mémoire des notifications traitées, consultable via GET /notifications.
+ * Seul service qui envoie des notifications (V7) : les emails sont construits ici à partir des
+ * données des événements Kafka, puis envoyés au serveur SMTP de test MailHog (http://localhost:8025).
+ * Un échec SMTP lève une exception : la transaction (journal + événement traité) est annulée et
+ * Kafka redélivre le message (3 essais, puis topic .DLT).
  */
 @Service
+@Transactional
 public class NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
-    private static final int TAILLE_JOURNAL = 100;
 
     private final JavaMailSender mailSender;
-    private final List<NotificationEnvoyee> journal = Collections.synchronizedList(new ArrayList<>());
+    private final NotificationRepository repository;
+    private final ConsommateurIdempotent lecteur;
 
-    public NotificationService(JavaMailSender mailSender) {
+    public NotificationService(JavaMailSender mailSender, NotificationRepository repository,
+                               ConsommateurIdempotent lecteur) {
         this.mailSender = mailSender;
+        this.repository = repository;
+        this.lecteur = lecteur;
     }
 
-    public void envoyerEmail(NotificationEmailDto notification) {
-        String statut;
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("noreply@credigo.ma");
-            message.setTo(notification.destinataire());
-            message.setSubject(notification.objet());
-            message.setText(notification.contenu());
-            mailSender.send(message);
-            statut = "ENVOYE";
-            log.info("Email envoyé à {} : {}", notification.destinataire(), notification.objet());
-        } catch (Exception e) {
-            statut = "ECHEC";
-            log.error("Échec d'envoi de l'email à {} : {}", notification.destinataire(), e.getMessage());
+    /** loan-approved : notifier le client de l'accord (une seule fois, pas lors d'une relance du décaissement). */
+    public String notifierAccord(EvenementMetier e) {
+        CreditAccordeDonnees accord = lecteur.donnees(e, CreditAccordeDonnees.class);
+        if (accord.tentative() > 1) {
+            return "IGNORE : relance du décaissement (tentative " + accord.tentative() + "), accord déjà notifié";
         }
-        journal.add(0, new NotificationEnvoyee(LocalDateTime.now(), notification.evenement(),
-                notification.dossierId(), notification.destinataire(), notification.objet(), statut));
-        if (journal.size() > TAILLE_JOURNAL) {
-            journal.remove(journal.size() - 1);
-        }
+        String objet = "Credi-Go : votre crédit n° " + accord.dossierId() + " est accordé";
+        String contenu = "Bonjour " + accord.nomClient() + ",\n\nVotre demande de crédit n° " + accord.dossierId()
+                + " est accordée : " + accord.montantAccorde() + " MAD sur " + accord.dureeMois()
+                + " mois au taux de " + accord.tauxPropose() + " %.\nLes fonds vous seront versés prochainement."
+                + "\n\nCredi-Go";
+        return envoyer(e, accord.dossierId(), accord.emailClient(), objet, contenu);
     }
 
-    public List<NotificationEnvoyee> journal() {
-        synchronized (journal) {
-            return List.copyOf(journal);
-        }
+    /** disbursement-paid : confirmer le versement des fonds. */
+    public String notifierVersement(EvenementMetier e) {
+        VersementEffectueDonnees v = lecteur.donnees(e, VersementEffectueDonnees.class);
+        String objet = "Credi-Go : fonds versés pour votre crédit n° " + v.dossierId();
+        String contenu = "Bonjour " + v.nomClient() + ",\n\nLe montant de " + v.montant() + " MAD de votre crédit n° "
+                + v.dossierId() + " a été versé. Votre échéancier de remboursement est désormais actif.\n\nCredi-Go";
+        return envoyer(e, v.dossierId(), v.emailClient(), objet, contenu);
     }
 
-    public record NotificationEnvoyee(LocalDateTime date, String evenement, Long dossierId,
-                                      String destinataire, String objet, String statut) {
+    @Transactional(readOnly = true)
+    public List<Notification> journal() {
+        return repository.findTop100ByOrderByIdDesc();
+    }
+
+    private String envoyer(EvenementMetier e, Long dossierId, String destinataire, String objet, String contenu) {
+        if (destinataire == null || destinataire.isBlank()) {
+            throw new EvenementIllisibleException("Événement " + e.eventId() + " sans destinataire", null);
+        }
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("noreply@credigo.ma");
+        message.setTo(destinataire);
+        message.setSubject(objet);
+        message.setText(contenu);
+        mailSender.send(message); // exception -> rollback -> nouvel essai par Kafka
+        repository.save(new Notification(e.eventType(), dossierId, destinataire, objet, "ENVOYE", e.eventId(),
+                e.correlationId()));
+        log.info("Email envoyé à {} : {}", destinataire, objet);
+        return "EMAIL ENVOYE à " + destinataire;
     }
 }

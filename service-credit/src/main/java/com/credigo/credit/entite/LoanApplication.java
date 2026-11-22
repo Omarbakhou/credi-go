@@ -2,8 +2,10 @@ package com.credigo.credit.entite;
 
 import com.credigo.credit.enums.StatutDossier;
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +21,7 @@ public class LoanApplication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Clé d'idempotence fournie par l'appelant (utilisée au jalon V6). */
+    /** Clé d'idempotence fournie par l'appelant (en-tête Idempotency-Key, V6). */
     @Column(unique = true)
     private String idempotencyKey;
 
@@ -50,6 +52,27 @@ public class LoanApplication {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatutDossier statut;
+
+    /** Verrou optimiste ; aussi version de la demande transmise au scoring (un score d'une version périmée est ignoré). */
+    @Version
+    @ColumnDefault("0")
+    @Column(name = "version_dossier")
+    private Long version;
+
+    /** Identifiant de corrélation du processus (V7) : porté par tous les événements du dossier. */
+    private String correlationId;
+
+    private LocalDateTime dateDepot;
+
+    /** Numéro de la dernière tentative de décaissement demandée (loan-approved). */
+    @ColumnDefault("0")
+    private int tentativeDecaissement;
+
+    /** Vrai après un disbursement-failed : le dossier reste ACCORDE, décaissement à relancer. */
+    @ColumnDefault("false")
+    private boolean decaissementAReprendre;
+
+    private String motifEchecDecaissement;
 
     @OneToMany(mappedBy = "loanApplication", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("numeroEcheance ASC")
@@ -92,4 +115,21 @@ public class LoanApplication {
     public void setStatut(StatutDossier statut) { this.statut = statut; }
 
     public List<RepaymentSchedule> getEcheancier() { return echeancier; }
+
+    public Long getVersion() { return version; }
+
+    public String getCorrelationId() { return correlationId; }
+    public void setCorrelationId(String correlationId) { this.correlationId = correlationId; }
+
+    public LocalDateTime getDateDepot() { return dateDepot; }
+    public void setDateDepot(LocalDateTime dateDepot) { this.dateDepot = dateDepot; }
+
+    public int getTentativeDecaissement() { return tentativeDecaissement; }
+    public void setTentativeDecaissement(int tentativeDecaissement) { this.tentativeDecaissement = tentativeDecaissement; }
+
+    public boolean isDecaissementAReprendre() { return decaissementAReprendre; }
+    public void setDecaissementAReprendre(boolean decaissementAReprendre) { this.decaissementAReprendre = decaissementAReprendre; }
+
+    public String getMotifEchecDecaissement() { return motifEchecDecaissement; }
+    public void setMotifEchecDecaissement(String motifEchecDecaissement) { this.motifEchecDecaissement = motifEchecDecaissement; }
 }

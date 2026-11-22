@@ -2,6 +2,7 @@ package com.credigo.credit.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -61,6 +62,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErreurResponse> integrite(DataIntegrityViolationException ex, HttpServletRequest req) {
         return reponse(HttpStatus.CONFLICT, "Contrainte d'intégrité violée", req, null);
+    }
+
+    /** Modification concurrente détectée par le verrou optimiste (@Version) : à rejouer. */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErreurResponse> concurrence(OptimisticLockingFailureException ex, HttpServletRequest req) {
+        return reponse(HttpStatus.CONFLICT, "Modification concurrente de la ressource : réessayez", req, null);
     }
 
     private ResponseEntity<ErreurResponse> reponse(HttpStatus status, String message,

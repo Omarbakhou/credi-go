@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "9f468055-2bad-4d60-8594-722f08037a88",
-    "name": "Credi-Go - V1 à V6",
-    "description": "Scénarios de test sauvegardés : CRUD, validations (400), ressources inexistantes (404), règles métier (409), Eureka, Config Server, Gateway, flux OpenFeign, notifications RabbitMQ, résilience et idempotence.",
+    "name": "Credi-Go - V1 à V7",
+    "description": "Scénarios de test sauvegardés : CRUD, validations (400), ressources inexistantes (404), règles métier (409), Eureka, Config Server, Gateway, flux OpenFeign / RabbitMQ / résilience (branche main), et flux événementiel Kafka avec outbox, consommateurs idempotents et projections locales (V7, branche v7-kafka).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -2078,8 +2078,8 @@
       ]
     },
     {
-      "name": "6 - V4 : flux du crédit (OpenFeign)",
-      "description": "Cycle complet DEPOSE -> EN_ETUDE -> ACCORDE -> DEBLOQUE, références distantes vérifiées par OpenFeign avant écriture.",
+      "name": "6 - V4 : flux du crédit (OpenFeign) [branche main]",
+      "description": "Jalons V4 à V6 (OpenFeign, RabbitMQ, Resilience4j) : à exécuter sur la branche main (tag v6.0). Sur la branche v7-kafka, ces processus sont réalisés par événements : voir le dossier 9. Cycle complet DEPOSE -> EN_ETUDE -> ACCORDE -> DEBLOQUE, références distantes vérifiées par OpenFeign avant écriture.",
       "item": [
         {
           "name": "Dépôt pour un client inexistant -> 404 (vérifié via Feign)",
@@ -2825,8 +2825,8 @@
       ]
     },
     {
-      "name": "7 - V5 : notifications RabbitMQ",
-      "description": "Prérequis : docker compose up -d (RabbitMQ + MailHog). Boîte de réception : http://localhost:8025 ; file RabbitMQ : http://localhost:15672.",
+      "name": "7 - V5 : notifications RabbitMQ [branche main]",
+      "description": "Jalons V4 à V6 (OpenFeign, RabbitMQ, Resilience4j) : à exécuter sur la branche main (tag v6.0). Sur la branche v7-kafka, ces processus sont réalisés par événements : voir le dossier 9. Prérequis : docker compose up -d (RabbitMQ + MailHog). Boîte de réception : http://localhost:8025 ; file RabbitMQ : http://localhost:15672.",
       "item": [
         {
           "name": "Attendre la consommation des messages (2 s)",
@@ -2941,8 +2941,8 @@
       ]
     },
     {
-      "name": "8 - V6 : résilience (à lancer manuellement)",
-      "description": "Arrêter le service indiqué entre crochets dans IntelliJ, lancer la requête, puis le redémarrer. Après plusieurs échecs, /actuator/circuitbreakers montre le circuit OPEN.",
+      "name": "8 - V6 : résilience (à lancer manuellement) [branche main]",
+      "description": "Jalons V4 à V6 (OpenFeign, RabbitMQ, Resilience4j) : à exécuter sur la branche main (tag v6.0). Sur la branche v7-kafka, ces processus sont réalisés par événements : voir le dossier 9. Arrêter le service indiqué entre crochets dans IntelliJ, lancer la requête, puis le redémarrer. Après plusieurs échecs, /actuator/circuitbreakers montre le circuit OPEN.",
       "item": [
         {
           "name": "État des circuit breakers de service-credit",
@@ -3108,6 +3108,1423 @@
           }
         }
       ]
+    },
+    {
+      "name": "9 - V7 : Kafka",
+      "description": "Prérequis : docker compose up -d (Kafka KRaft, Kafka UI, MailHog) et relance des services métier. Flux complet piloté par événements : application-deposited -> client-scored -> décision -> loan-approved (réservation des fonds) -> échec et compensation (disbursement-failed) -> relance -> versement (disbursement-paid) -> DEBLOQUE, échéancier A_PAYER, trésorerie débitée une seule fois, notifications. Les étapes asynchrones sont attendues par interrogation (400 ms, 40 essais max). Topics : http://localhost:8090",
+      "item": [
+        {
+          "name": "V7 - Projection locale des clients (service-credit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/projections/clients"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.code === 200 && pm.response.json().some(x => x.id === 2); })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Client 2 ACTIF dans la projection\", () => pm.expect(pm.response.json().find(x => x.id === 2).statut).to.eql(\"ACTIF\"));",
+                  "pm.test(\"Client 4 INACTIF dans la projection\", () => pm.expect(pm.response.json().find(x => x.id === 4).statut).to.eql(\"INACTIF\"));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection locale des clients (service-decaissements)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{decaissements}}/projections/clients"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.code === 200 && pm.response.json().some(x => x.id === 2); })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Client 2 présent\", () => pm.expect(pm.response.json().map(x => x.id)).to.include(2));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Trésorerie 1 avant le flux (soldes de référence)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{decaissements}}/tresoreries/1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"v7SoldeInitial\", pm.response.json().soldeDisponible);",
+                  "pm.collectionVariables.set(\"v7ReserveInitiale\", pm.response.json().montantReserve);",
+                  "pm.test(\"Montant réservé exposé\", () => pm.expect(pm.response.json()).to.have.property(\"montantReserve\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Dépôt pour un client inexistant -> 404 (projection locale)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{credit}}/credits",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 9999,\n  \"montantDemande\": 20000,\n  \"dureeMois\": 24,\n  \"motif\": \"Test\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Dépôt pour un client inactif -> 409 (projection locale)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{credit}}/credits",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 4,\n  \"montantDemande\": 20000,\n  \"dureeMois\": 24,\n  \"motif\": \"Test\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Déposer une demande (client 2) -> 201 DEPOSE, application-deposited",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{v7CleDepot}}"
+              }
+            ],
+            "url": "{{credit}}/credits",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 2,\n  \"montantDemande\": 25000,\n  \"dureeMois\": 24,\n  \"motif\": \"Achat voiture (V7)\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"v7CleDepot\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"v7DossierId\", pm.response.json().id);",
+                  "    pm.collectionVariables.set(\"v7CorrelationId\", pm.response.json().correlationId);",
+                  "}",
+                  "pm.test(\"Statut DEPOSE\", () => pm.expect(pm.response.json().statut).to.eql(\"DEPOSE\"));",
+                  "pm.test(\"correlationId attribué\", () => pm.expect(pm.response.json().correlationId).to.be.a(\"string\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Rejouer le dépôt (même Idempotency-Key) -> 200, même dossier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{v7CleDepot}}"
+              }
+            ],
+            "url": "{{credit}}/credits",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 2,\n  \"montantDemande\": 25000,\n  \"dureeMois\": 24,\n  \"motif\": \"Achat voiture (V7)\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Aucun doublon : même id\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"v7DossierId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - client-scored : dossier EN_ETUDE avec le score calculé",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.json().statut !== \"DEPOSE\"; })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"Statut EN_ETUDE\", () => pm.expect(pm.response.json().statut).to.eql(\"EN_ETUDE\"));",
+                  "pm.test(\"Score du client 2 (revenus 8 500) = 650\", () => pm.expect(pm.response.json().scoreEtude).to.eql(650));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Score enregistré par service-clients (scoreInterne)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{clients}}/clients/2"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"scoreInterne = 650\", () => pm.expect(pm.response.json().scoreInterne).to.eql(650));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Décision -> ACCORDE, loan-approved",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}/decision"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut ACCORDE\", () => pm.expect(pm.response.json().statut).to.eql(\"ACCORDE\"));",
+                  "pm.test(\"Montant accordé 25 000\", () => pm.expect(pm.response.json().montantAccorde).to.eql(25000));",
+                  "pm.test(\"Taux 6,50 %\", () => pm.expect(pm.response.json().tauxPropose).to.eql(6.5));",
+                  "pm.test(\"Tentative de décaissement 1\", () => pm.expect(pm.response.json().tentativeDecaissement).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Échéancier généré mais INACTIF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}/echeancier"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"24 échéances INACTIVE\", () => { const e = pm.response.json(); pm.expect(e.length).to.eql(24); e.forEach(x => pm.expect(x.statut).to.eql(\"INACTIVE\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - loan-approved : décaissement préparé, fonds réservés (RESERVE)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{decaissements}}/decaissements?dossierId={{v7DossierId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.json().some(x => x.statut === \"RESERVE\"); })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "const d = pm.response.json().find(x => x.statut === \"RESERVE\");",
+                  "pm.collectionVariables.set(\"v7VersementId1\", d.id);",
+                  "pm.test(\"Montant = montant accordé\", () => pm.expect(d.montant).to.eql(25000));",
+                  "pm.test(\"Compte le plus approvisionné (1)\", () => pm.expect(d.treasuryAccountId).to.eql(1));",
+                  "pm.test(\"Même correlationId que le dossier\", () => pm.expect(d.correlationId).to.eql(pm.collectionVariables.get(\"v7CorrelationId\")));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Trésorerie : 25 000 réservés (disponible - 25 000)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{decaissements}}/tresoreries/1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const t = pm.response.json();",
+                  "pm.test(\"Disponible = initial - 25 000\", () => pm.expect(t.soldeDisponible).to.eql(Number(pm.collectionVariables.get(\"v7SoldeInitial\")) - 25000));",
+                  "pm.test(\"Réservé = initial + 25 000\", () => pm.expect(t.montantReserve).to.eql(Number(pm.collectionVariables.get(\"v7ReserveInitiale\")) + 25000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Annuler la réservation -> ANNULE, disbursement-failed",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{decaissements}}/decaissements/{{v7VersementId1}}/annulation"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut ANNULE\", () => pm.expect(pm.response.json().statut).to.eql(\"ANNULE\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Compensation : fonds réservés libérés",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{decaissements}}/tresoreries/1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const t = pm.response.json();",
+                  "pm.test(\"Disponible = initial\", () => pm.expect(t.soldeDisponible).to.eql(Number(pm.collectionVariables.get(\"v7SoldeInitial\"))));",
+                  "pm.test(\"Réservé = initial\", () => pm.expect(t.montantReserve).to.eql(Number(pm.collectionVariables.get(\"v7ReserveInitiale\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - disbursement-failed : dossier ACCORDE, décaissement à reprendre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.json().decaissementAReprendre === true; })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"Le dossier reste ACCORDE\", () => pm.expect(pm.response.json().statut).to.eql(\"ACCORDE\"));",
+                  "pm.test(\"Motif de l'échec conservé\", () => pm.expect(pm.response.json().motifEchecDecaissement).to.include(\"annulée\"));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Échéancier toujours INACTIF après l'échec",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}/echeancier"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Échéances INACTIVE\", () => pm.response.json().forEach(x => pm.expect(x.statut).to.eql(\"INACTIVE\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Action tardive : verser une réservation annulée -> 409",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{decaissements}}/decaissements/{{v7VersementId1}}/versement"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Relancer le décaissement -> loan-approved (tentative 2)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}/relance-decaissement"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Tentative 2\", () => pm.expect(pm.response.json().tentativeDecaissement).to.eql(2));",
+                  "pm.test(\"Plus à reprendre\", () => pm.expect(pm.response.json().decaissementAReprendre).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Relancer une seconde fois -> 409 (décaissement déjà relancé)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}/relance-decaissement"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Nouvelle réservation des fonds (tentative 2)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{decaissements}}/decaissements?dossierId={{v7DossierId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.json().some(x => x.statut === \"RESERVE\"); })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "const d = pm.response.json().find(x => x.statut === \"RESERVE\");",
+                  "pm.collectionVariables.set(\"v7VersementId2\", d.id);",
+                  "pm.test(\"Nouveau décaissement\", () => pm.expect(d.id).to.not.eql(Number(pm.collectionVariables.get(\"v7VersementId1\"))));",
+                  "pm.test(\"Tentative 2\", () => pm.expect(d.tentative).to.eql(2));",
+                  "pm.test(\"Un seul décaissement actif\", () => pm.expect(pm.response.json().filter(x => x.statut === \"RESERVE\" || x.statut === \"VERSE\").length).to.eql(1));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Verser les fonds -> VERSE, disbursement-paid",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{decaissements}}/decaissements/{{v7VersementId2}}/versement"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut VERSE\", () => pm.expect(pm.response.json().statut).to.eql(\"VERSE\"));",
+                  "pm.test(\"Montant 25 000\", () => pm.expect(pm.response.json().montant).to.eql(25000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Rejouer le versement -> 200, même versement (idempotent)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{decaissements}}/decaissements/{{v7VersementId2}}/versement"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Même versement, toujours VERSE\", () => { pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"v7VersementId2\"))); pm.expect(pm.response.json().statut).to.eql(\"VERSE\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - disbursement-paid : dossier DEBLOQUE",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.json().statut === \"DEBLOQUE\"; })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"Statut DEBLOQUE\", () => pm.expect(pm.response.json().statut).to.eql(\"DEBLOQUE\"));",
+                  "pm.test(\"Rien à reprendre\", () => pm.expect(pm.response.json().decaissementAReprendre).to.eql(false));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - État final : échéancier activé (A_PAYER)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}/echeancier"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"24 échéances A_PAYER\", () => { const e = pm.response.json(); pm.expect(e.length).to.eql(24); e.forEach(x => pm.expect(x.statut).to.eql(\"A_PAYER\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - État final : trésorerie débitée une seule fois",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{decaissements}}/tresoreries/1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const t = pm.response.json();",
+                  "pm.test(\"Disponible = initial - 25 000\", () => pm.expect(t.soldeDisponible).to.eql(Number(pm.collectionVariables.get(\"v7SoldeInitial\")) - 25000));",
+                  "pm.test(\"Plus aucun fonds réservé pour ce dossier\", () => pm.expect(t.montantReserve).to.eql(Number(pm.collectionVariables.get(\"v7ReserveInitiale\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Consultation enrichie depuis les projections locales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierId}}/details"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json();",
+                  "pm.test(\"Client (projection client-events)\", () => pm.expect(d.client.email).to.eql(\"salma.bennani@mail.ma\"));",
+                  "pm.test(\"Garanties (projection client-events)\", () => pm.expect(d.garanties.length).to.be.above(0));",
+                  "pm.test(\"Échéancier local\", () => pm.expect(d.echeancier.length).to.eql(24));",
+                  "pm.test(\"Décaissements (projection disbursement-*) : 1 ANNULE + 1 VERSE\", () => {",
+                  "    pm.expect(d.decaissements.map(x => x.statut).sort()).to.eql([\"ANNULE\", \"VERSE\"]);",
+                  "});",
+                  "pm.test(\"Données complètes\", () => pm.expect(d.donneesPartielles).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Consultation enrichie via la Gateway",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/service-credit/credits/{{v7DossierId}}/details"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Notifications envoyées par notification-service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{notifications}}/notifications"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { const n = pm.response.json().filter(x => x.dossierId === Number(pm.collectionVariables.get(\"v7DossierId\")));",
+                  "return n.some(x => x.evenement === \"LOAN_APPROVED\") && n.some(x => x.evenement === \"DISBURSEMENT_PAID\"); })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "const n = pm.response.json().filter(x => x.dossierId === Number(pm.collectionVariables.get(\"v7DossierId\")));",
+                  "pm.test(\"Accord notifié une seule fois (relance non notifiée)\", () => pm.expect(n.filter(x => x.evenement === \"LOAN_APPROVED\").length).to.eql(1));",
+                  "pm.test(\"Versement notifié\", () => pm.expect(n.filter(x => x.evenement === \"DISBURSEMENT_PAID\").length).to.eql(1));",
+                  "pm.test(\"Emails envoyés\", () => n.forEach(x => pm.expect(x.statut).to.eql(\"ENVOYE\")));",
+                  "pm.test(\"Même correlationId\", () => n.forEach(x => pm.expect(x.correlationId).to.eql(pm.collectionVariables.get(\"v7CorrelationId\"))));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Emails reçus dans MailHog",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8025/api/v2/messages"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const items = pm.response.json().items;",
+                  "pm.test(\"Emails adressés au client 2\", () => pm.expect(items.filter(m => JSON.stringify(m.Content.Headers.To).includes(\"salma.bennani\")).length).to.be.at.least(2));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Outbox de service-credit : événements publiés",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/evenements/outbox?correlationId={{v7CorrelationId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const o = pm.response.json();",
+                  "pm.test(\"application-deposited puis 2 loan-approved\", () => pm.expect(o.map(x => x.eventType)).to.eql([\"APPLICATION_DEPOSITED\", \"LOAN_APPROVED\", \"LOAN_APPROVED\"]));",
+                  "pm.test(\"Tous publiés dans Kafka\", () => o.forEach(x => pm.expect(x.statut).to.eql(\"PUBLIE\")));",
+                  "pm.test(\"Enveloppe : eventId, correlationId, businessId, version, data\", () => o.forEach(x => {",
+                  "    [\"eventId\", \"eventType\", \"correlationId\", \"businessId\", \"version\", \"data\"].forEach(k => pm.expect(x.evenement).to.have.property(k));",
+                  "    pm.expect(x.evenement.businessId).to.eql(String(pm.collectionVariables.get(\"v7DossierId\")));",
+                  "}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Événements consommés par service-credit (idempotence)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/evenements/traites?correlationId={{v7CorrelationId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const t = pm.response.json().map(x => x.eventType);",
+                  "pm.test(\"client-scored, disbursement-failed, disbursement-paid\", () => [\"CLIENT_SCORED\", \"DISBURSEMENT_FAILED\", \"DISBURSEMENT_PAID\"].forEach(x => pm.expect(t).to.include(x)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Événements consommés par service-clients et service-decaissements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{decaissements}}/evenements/traites?correlationId={{v7CorrelationId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"2 loan-approved traités (tentatives 1 et 2)\", () => pm.expect(pm.response.json().filter(x => x.eventType === \"LOAN_APPROVED\").length).to.eql(2));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Refus - déposer pour le client 3 (revenus 4 200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{credit}}/credits",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 3,\n  \"montantDemande\": 40000,\n  \"dureeMois\": 36,\n  \"motif\": \"Achat moto (V7)\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"v7DossierRefusId\", pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Refus - score reçu (480)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierRefusId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.json().statut !== \"DEPOSE\"; })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"Statut EN_ETUDE\", () => pm.expect(pm.response.json().statut).to.eql(\"EN_ETUDE\"));",
+                  "pm.test(\"Score 480\", () => pm.expect(pm.response.json().scoreEtude).to.eql(480));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Refus - décision -> REFUSE (score insuffisant)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierRefusId}}/decision"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut REFUSE\", () => pm.expect(pm.response.json().statut).to.eql(\"REFUSE\"));",
+                  "pm.test(\"Motif de refus\", () => pm.expect(pm.response.json().commentaireDecision).to.include(\"Score insuffisant\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Annulation - déposer pour le client 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{credit}}/credits",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 1,\n  \"montantDemande\": 15000,\n  \"dureeMois\": 12,\n  \"motif\": \"Demande annulée (V7)\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"v7DossierAnnuleId\", pm.response.json().id);",
+                  "    pm.collectionVariables.set(\"v7CorrelationAnnule\", pm.response.json().correlationId);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Annulation - annuler aussitôt -> ANNULE",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierAnnuleId}}/annulation"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Statut ANNULE\", () => pm.expect(pm.response.json().statut).to.eql(\"ANNULE\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Annulation - score tardif reçu puis ignoré",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/evenements/traites?correlationId={{v7CorrelationAnnule}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.json().some(x => x.eventType === \"CLIENT_SCORED\"); })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "const s = pm.response.json().find(x => x.eventType === \"CLIENT_SCORED\");",
+                  "pm.test(\"client-scored ignoré (résultat tardif)\", () => pm.expect(s.resultat).to.include(\"IGNORE\"));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Annulation - le dossier reste ANNULE (score non appliqué)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/credits/{{v7DossierAnnuleId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Toujours ANNULE\", () => pm.expect(pm.response.json().statut).to.eql(\"ANNULE\"));",
+                  "pm.test(\"Score non appliqué\", () => pm.expect(pm.response.json().scoreEtude).to.eql(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - créer un client dans service-clients",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{clients}}/clients",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Client Projection V7\",\n  \"email\": \"projection.v7.{{$timestamp}}@mail.ma\",\n  \"revenusMensuels\": 11000\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.collectionVariables.set(\"v7ClientId\", pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - client créé visible dans service-credit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/projections/clients/{{v7ClientId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.code === 200; })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"Client ACTIF projeté\", () => pm.expect(pm.response.json().statut).to.eql(\"ACTIF\"));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - désactiver le client",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{clients}}/clients/{{v7ClientId}}/desactivation"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - désactivation propagée à service-credit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/projections/clients/{{v7ClientId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.json().statut === \"INACTIF\"; })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"INACTIF dans service-credit\", () => pm.expect(pm.response.json().statut).to.eql(\"INACTIF\"));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - désactivation propagée à service-decaissements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{decaissements}}/projections/clients/{{v7ClientId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.json().statut === \"INACTIF\"; })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"INACTIF dans service-decaissements\", () => pm.expect(pm.response.json().statut).to.eql(\"INACTIF\"));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - dépôt refusé pour ce client désormais inactif -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{credit}}/credits",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{v7ClientId}}\",\n  \"montantDemande\": 20000,\n  \"dureeMois\": 24,\n  \"motif\": \"Test\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - reconstruction (relecture de client-events) -> 202",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{credit}}/projections/clients/reconstruction"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 202\", () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - reconstruite à l'identique depuis le topic",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/projections/clients"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { const ids = pm.response.json().map(x => x.id); return [1, 2, 3, 4, Number(pm.collectionVariables.get(\"v7ClientId\"))].every(i => ids.includes(i)); })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "const p = pm.response.json();",
+                  "pm.test(\"Clients de référence présents\", () => [1, 2, 3, 4].forEach(i => pm.expect(p.map(x => x.id)).to.include(i)));",
+                  "pm.test(\"Dernier état conservé (INACTIF)\", () => pm.expect(p.find(x => x.id === Number(pm.collectionVariables.get(\"v7ClientId\"))).statut).to.eql(\"INACTIF\"));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - supprimer le client",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{clients}}/clients/{{v7ClientId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V7 - Projection - suppression propagée (404 dans la projection)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{credit}}/projections/clients/{{v7ClientId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.collectionVariables.get(\"v7Essais\") || 0) > 0) { setTimeout(() => {}, 400); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const essais = Number(pm.collectionVariables.get(\"v7Essais\") || 0);",
+                  "let pret = false;",
+                  "try { pret = (function () { return pm.response.code === 404; })(); } catch (e) { pret = false; }",
+                  "if (!pret && essais < 40) {",
+                  "    pm.collectionVariables.set(\"v7Essais\", essais + 1);",
+                  "    postman.setNextRequest(pm.info.requestName); // événement pas encore traité : nouvel essai",
+                  "} else {",
+                  "    pm.collectionVariables.set(\"v7Essais\", 0);",
+                  "    pm.test(\"Événement traité (attente asynchrone)\", () => pm.expect(pret).to.eql(true));",
+                  "pm.test(\"Statut HTTP 404\", () => pm.response.to.have.status(404));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [
@@ -3169,6 +4586,54 @@
     },
     {
       "key": "clientGwId",
+      "value": ""
+    },
+    {
+      "key": "v7Essais",
+      "value": ""
+    },
+    {
+      "key": "v7CleDepot",
+      "value": ""
+    },
+    {
+      "key": "v7DossierId",
+      "value": ""
+    },
+    {
+      "key": "v7CorrelationId",
+      "value": ""
+    },
+    {
+      "key": "v7SoldeInitial",
+      "value": ""
+    },
+    {
+      "key": "v7ReserveInitiale",
+      "value": ""
+    },
+    {
+      "key": "v7VersementId1",
+      "value": ""
+    },
+    {
+      "key": "v7VersementId2",
+      "value": ""
+    },
+    {
+      "key": "v7DossierRefusId",
+      "value": ""
+    },
+    {
+      "key": "v7DossierAnnuleId",
+      "value": ""
+    },
+    {
+      "key": "v7CorrelationAnnule",
+      "value": ""
+    },
+    {
+      "key": "v7ClientId",
       "value": ""
     }
   ]

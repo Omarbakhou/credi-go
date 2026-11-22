@@ -12,7 +12,8 @@ import java.math.BigDecimal;
 public class DecaissementMapper {
 
     public TreasuryAccountDto toDto(TreasuryAccount compte) {
-        return new TreasuryAccountDto(compte.getId(), compte.getLibelle(), compte.getSoldeDisponible());
+        return new TreasuryAccountDto(compte.getId(), compte.getLibelle(), compte.getSoldeDisponible(),
+                compte.getMontantReserve());
     }
 
     public TreasuryAccount toNouvelleEntite(TreasuryAccountDto dto) {
@@ -23,7 +24,9 @@ public class DecaissementMapper {
     }
 
     public DisbursementDto toDto(Disbursement d) {
-        return new DisbursementDto(d.getId(), d.getLoanApplicationId(), d.getTreasuryAccount().getId(),
-                d.getMontant(), d.getDate(), d.getStatut());
+        return new DisbursementDto(d.getId(), d.getLoanApplicationId(),
+                d.getTreasuryAccount() == null ? null : d.getTreasuryAccount().getId(),
+                d.getMontant(), d.getDate(), d.getStatut(), d.getClientId(), d.getTentative(),
+                d.getDateReservation(), d.getDateExpiration(), d.getMotifEchec(), d.getCorrelationId());
     }
 }

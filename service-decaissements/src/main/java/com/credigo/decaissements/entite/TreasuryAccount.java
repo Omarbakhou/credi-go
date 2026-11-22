@@ -1,10 +1,15 @@
 package com.credigo.decaissements.entite;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 
-/** Enveloppe de trésorerie qui finance les décaissements. */
+/**
+ * Enveloppe de trésorerie qui finance les décaissements.
+ * V7 : soldeDisponible = fonds encore réservables ; montantReserve = fonds réservés pour des
+ * décaissements préparés mais pas encore versés (libérés si le versement échoue ou expire).
+ */
 @Entity
 @Table(name = "treasury_account")
 public class TreasuryAccount {
@@ -19,6 +24,16 @@ public class TreasuryAccount {
     @Column(nullable = false, precision = 14, scale = 2)
     private BigDecimal soldeDisponible;
 
+    @ColumnDefault("0")
+    @Column(nullable = false, precision = 14, scale = 2)
+    private BigDecimal montantReserve = BigDecimal.ZERO;
+
+    /** Verrou optimiste : les réservations atomiques (requêtes UPDATE) incrémentent aussi la version. */
+    @Version
+    @ColumnDefault("0")
+    @Column(name = "version_compte")
+    private Long version;
+
     public TreasuryAccount() {
     }
 
@@ -30,4 +45,8 @@ public class TreasuryAccount {
 
     public BigDecimal getSoldeDisponible() { return soldeDisponible; }
     public void setSoldeDisponible(BigDecimal soldeDisponible) { this.soldeDisponible = soldeDisponible; }
+
+    public BigDecimal getMontantReserve() { return montantReserve; }
+
+    public Long getVersion() { return version; }
 }
