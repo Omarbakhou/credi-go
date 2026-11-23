@@ -13,5 +13,12 @@ until curl -s -o /dev/null localhost:8888/service-clients/default && curl -s -o 
 for s in service-clients service-credit service-decaissements notification-service gateway-service; do run $s; done
 echo "Attente des services..."
 until [ "$(curl -s -H 'Accept: application/json' localhost:8761/eureka/apps | grep -o '"status":"UP"' | wc -l | tr -d ' ')" -ge 6 ]; do sleep 2; done
-echo "Tous les services sont UP. Patienter ~30 s avant la 1ère requête Feign (cache du load balancer)."
+echo "Tous les services sont UP dans Eureka. Attente que les appels OpenFeign passent..."
+for i in $(seq 1 60); do
+  c1=$(curl -s -m 5 -o /dev/null -w '%{http_code}' -X POST localhost:8082/credits -H 'Content-Type: application/json' -d '{"clientId":9999,"montantDemande":1000,"dureeMois":12,"motif":"warmup"}')
+  c2=$(curl -s -m 5 -o /dev/null -w '%{http_code}' -X POST localhost:8083/decaissements -H 'Content-Type: application/json' -d '{"loanApplicationId":9999,"treasuryAccountId":1}')
+  [ "$c1" = "404" ] && [ "$c2" = "404" ] && break
+  sleep 3
+done
+if [ "$c1" = "404" ] && [ "$c2" = "404" ]; then echo "PRÊT : OpenFeign répond (404 attendus), la collection Postman peut être lancée."; else echo "ATTENTION : Feign renvoie encore $c1/$c2, attendre encore 20 s."; fi
 echo "Eureka: http://localhost:8761 | Gateway: http://localhost:8080 | MailHog: http://localhost:8025 | RabbitMQ: http://localhost:15672 (credigo/credigo123)"

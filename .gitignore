@@ -44,3 +44,4 @@ application-local.yml
 application-local.yaml
 logs/
 .DS_Store
+*.postman_test_run.json
