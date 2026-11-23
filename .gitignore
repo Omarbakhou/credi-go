@@ -42,3 +42,5 @@ build/
 application-local.properties
 application-local.yml
 application-local.yaml
+logs/
+.DS_Store
