@@ -1,6 +1,6 @@
 # Credi-Go
 
-Projet de fin de module réalisé dans le cadre de la formation **J2EE Avancée et Spring Boot** (5ème année IDSI, EMSI), enseignée par **M. KHALIL Salim**.
+Projet de module réalisé dans le cadre de la formation **J2EE Avancée et Spring Boot** (5ème année DSI, EMSI), enseignée par **M. KHALIL Salim**.
 
 **Credi-Go** est une plateforme d'octroi de **crédits à la consommation** en architecture micro-services. Un client dépose une demande de crédit, son dossier est **scoré** puis **étudié** ; la décision d'accord déclenche la préparation du **décaissement** (vérification et réservation de la trésorerie), et le versement effectif **active l'échéancier de remboursement**.
 
