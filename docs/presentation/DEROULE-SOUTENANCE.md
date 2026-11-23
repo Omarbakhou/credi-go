@@ -36,6 +36,8 @@ Phrase d'ouverture : « Credi-Go, octroi de crédits à la consommation en micro
 | Service Discovery | Onglet **Eureka** : 6 instances UP | « Chaque service porte `@EnableDiscoveryClient` et s'enregistre sous son `spring.application.name`. » Code : `service-registry/.../ServiceRegistryApplication.java` (`@EnableEurekaServer`). |
 | Routage dynamique | Onglet **Gateway** `localhost:8080/service-clients/clients` | « Le préfixe est le nom du service dans Eureka. » Code : `config-repo/gateway-service.properties` → `discovery.locator.enabled=true`. |
 | Routage statique / load balancing | IntelliJ : `config-repo/gateway-service-statique.properties` | « Profil `statique` : routes déclarées, `lb://service-credit` délègue au load balancer. Validé par la collection Manuels, dossier 5. » |
+| « Dynamique ou statique ? » | Les deux fichiers ci-dessus côte à côte | « **Les deux.** Dynamique par défaut : la Gateway génère les routes depuis Eureka. Statique sur le profil `statique` : routes déclarées à la main avec `lb://`, le load balancer choisit l'instance. » |
+| Équilibrage de charge en vrai | Terminal : `./start-clients-2.sh` → onglet Eureka : SERVICE-CLIENTS **UP (2)** → rafraîchir `localhost:8080/service-clients/clients` plusieurs fois. **Ctrl+C sur le script dès la démo finie** (base H2 séparée par instance). | « Deux instances du même service, Eureka les voit, la Gateway alterne en round-robin. » |
 | Config Server | Onglet **Config Server** `localhost:8888/service-clients/default` → montrer `server.port: 8081`. Puis IntelliJ : `service-clients/src/main/resources/application.properties` (2 lignes) | « Le jar ne connaît que son nom et l'URL du Config Server. Port, base, Eureka, RabbitMQ viennent du dossier config-repo. » |
 
 ## V4 — OpenFeign (slide 12)

@@ -33,6 +33,8 @@ Tous les chemins sont relatifs à `credi-go/`. Les packages Java commencent par 
 | Eureka Client | `service-clients/.../ServiceClientsApplication.java` (`@EnableDiscoveryClient`) ; URL Eureka dans `config-repo/application.properties` | « Chaque service s'enregistre sous son `spring.application.name`. » |
 | Routage dynamique | `config-repo/gateway-service.properties` : `discovery.locator.enabled=true` | « Une route par service Eureka : `/service-clients/clients`. » |
 | Routage statique + load balancing | `config-repo/gateway-service-statique.properties` : `routes[0].uri=lb://service-clients`, `Path=/clients/**` | « Profil `statique` : routes déclarées, `lb://` délègue au load balancer côté client. Postman dossier 5. » |
+| « Vous avez fait du dynamique ou du statique ? » | Les deux fichiers | « Les deux. Dynamique par défaut (`discovery.locator.enabled=true`, une route par service Eureka, préfixe = nom du service). Statique avec `--spring.profiles.active=statique` (routes déclarées, `lb://`, chemins courts). Les deux passent par Eureka et le load balancer ; la différence est qui écrit les routes. » |
+| Montrer l'équilibrage de charge | `./start-clients-2.sh` (2e instance de service-clients sur 8091) → Eureka affiche UP (2) → la Gateway alterne. Arrêter après la démo. | « Round-robin du load balancer Spring Cloud entre les instances connues d'Eureka. » |
 
 ## V3 — Config Server
 
