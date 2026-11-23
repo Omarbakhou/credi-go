@@ -1,0 +1,376 @@
+{
+	"info": {
+		"_postman_id": "9f468055-2bad-4d60-8594-722f08037a99",
+		"name": "Credi-Go - Manuels (gateway statique, résilience)",
+		"description": "À lancer à la main : dossier 5 avec la gateway en profil statique ; dossier 8 après avoir arrêté le service indiqué.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "5 - Gateway :8080 - routage statique (profil statique)",
+			"description": "Relancer la gateway avec le profil statique (Active profiles: statique). Routes déclarées dans gateway-service-statique.properties, instances résolues via lb://.",
+			"item": [
+				{
+					"name": "Clients (route statique)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway}}/clients",
+							"host": [
+								"{{gateway}}/clients"
+							]
+						}
+					}
+				},
+				{
+					"name": "Garanties (route statique)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway}}/garanties",
+							"host": [
+								"{{gateway}}/garanties"
+							]
+						}
+					}
+				},
+				{
+					"name": "Dossiers (route statique)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway}}/credits",
+							"host": [
+								"{{gateway}}/credits"
+							]
+						}
+					}
+				},
+				{
+					"name": "Trésoreries (route statique)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway}}/tresoreries",
+							"host": [
+								"{{gateway}}/tresoreries"
+							]
+						}
+					}
+				},
+				{
+					"name": "Décaissements (route statique)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Réponse = liste\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway}}/decaissements",
+							"host": [
+								"{{gateway}}/decaissements"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "8 - V6 : résilience (à lancer manuellement)",
+			"description": "Arrêter le service indiqué entre crochets dans IntelliJ, lancer la requête, puis le redémarrer. Après plusieurs échecs, /actuator/circuitbreakers montre le circuit OPEN.",
+			"item": [
+				{
+					"name": "État des circuit breakers de service-credit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{credit}}/actuator/circuitbreakers",
+							"host": [
+								"{{credit}}/actuator/circuitbreakers"
+							]
+						}
+					}
+				},
+				{
+					"name": "[service-clients ARRÊTÉ] Dépôt -> 503 après 3 tentatives",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 503\", () => pm.response.to.have.status(503));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{credit}}/credits",
+							"host": [
+								"{{credit}}/credits"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"clientId\": 2,\n  \"montantDemande\": 15000,\n  \"dureeMois\": 12,\n  \"motif\": \"Test résilience\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "[service-clients ARRÊTÉ] Consultation enrichie -> 200, données partielles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Réponse partielle\", () => pm.expect(pm.response.json().donneesPartielles).to.eql(true));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{credit}}/credits/3/details",
+							"host": [
+								"{{credit}}/credits/3/details"
+							]
+						}
+					}
+				},
+				{
+					"name": "[service-credit ARRÊTÉ] Versement -> 503",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 503\", () => pm.response.to.have.status(503));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{decaissements}}/decaissements",
+							"host": [
+								"{{decaissements}}/decaissements"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"loanApplicationId\": 5,\n  \"treasuryAccountId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Erreur centralisée : JSON illisible -> 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut HTTP 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{credit}}/credits",
+							"host": [
+								"{{credit}}/credits"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "gateway",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "clients",
+			"value": "http://localhost:8081"
+		},
+		{
+			"key": "credit",
+			"value": "http://localhost:8082"
+		},
+		{
+			"key": "decaissements",
+			"value": "http://localhost:8083"
+		},
+		{
+			"key": "notifications",
+			"value": "http://localhost:8084"
+		},
+		{
+			"key": "cleDepot",
+			"value": ""
+		},
+		{
+			"key": "cleVersement",
+			"value": ""
+		},
+		{
+			"key": "fluxDossierId",
+			"value": ""
+		},
+		{
+			"key": "fluxVersementId",
+			"value": ""
+		},
+		{
+			"key": "dossierRefusId",
+			"value": ""
+		},
+		{
+			"key": "clientId",
+			"value": ""
+		},
+		{
+			"key": "garantieId",
+			"value": ""
+		},
+		{
+			"key": "dossierId",
+			"value": ""
+		},
+		{
+			"key": "compteId",
+			"value": ""
+		},
+		{
+			"key": "clientGwId",
+			"value": ""
+		},
+		{
+			"key": "soldeAvant",
+			"value": ""
+		}
+	]
+}

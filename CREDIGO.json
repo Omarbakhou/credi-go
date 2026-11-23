@@ -1,0 +1,3525 @@
+{
+	"id": "79d49151-69d7-42f5-9b2a-cc1205c12fb6",
+	"name": "Credi-Go - V1 à V6",
+	"timestamp": "2026-11-23T16:40:54.765Z",
+	"collection_id": "60378833-08f48a63-7b03-4318-9cbd-6a25d45c7994",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 150,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2026-11-23T16:40:47.100Z",
+	"totalFail": 13,
+	"results": [
+		{
+			"id": "adbaefd3-8a44-4d64-aca1-9ec1448e5d79",
+			"name": "Eureka - applications enregistrées",
+			"url": "http://localhost:8761/eureka/apps",
+			"time": 7,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Tous les services sont UP dans Eureka": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Tous les services sont UP dans Eureka": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Tous les services sont UP dans Eureka": true
+				}
+			]
+		},
+		{
+			"id": "65ac30b6-8dfa-4d23-8572-c1d82dbad314",
+			"name": "Config Server - config de service-clients",
+			"url": "http://localhost:8888/service-clients/default",
+			"time": 129,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Fichier service-clients.properties servi": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Fichier service-clients.properties servi": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				129
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Fichier service-clients.properties servi": true
+				}
+			]
+		},
+		{
+			"id": "71c157c0-d4d1-4446-86c1-f212369c71c6",
+			"name": "Config Server - config de service-credit",
+			"url": "http://localhost:8888/service-credit/default",
+			"time": 14,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "da7b3567-115d-4089-a3cb-9f65ecfa107f",
+			"name": "Config Server - config de service-decaissements",
+			"url": "http://localhost:8888/service-decaissements/default",
+			"time": 16,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				16
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "b281c0ff-6237-4551-a3fd-16041e3134bb",
+			"name": "Config Server - config de la gateway",
+			"url": "http://localhost:8888/gateway-service/default",
+			"time": 14,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "3473b5e6-bdba-4986-b69f-3463065bdf48",
+			"name": "Config Server - config gateway (profil statique)",
+			"url": "http://localhost:8888/gateway-service/statique",
+			"time": 14,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "f044d0aa-7ab9-43f0-a29d-b71e651916f0",
+			"name": "Port chargé depuis le Config Server (service-clients en 8081)",
+			"url": "http://localhost:8081/actuator/health",
+			"time": 216,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				216
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "658a4298-155f-4271-b53e-63ded3e5b3be",
+			"name": "Lister les clients",
+			"url": "http://localhost:8081/clients",
+			"time": 203,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				203
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "2e418f1b-86fc-4bb0-a6a4-2bcb00d05b98",
+			"name": "Consulter le client 1",
+			"url": "http://localhost:8081/clients/1",
+			"time": 7,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse contient revenusMensuels": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse contient revenusMensuels": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse contient revenusMensuels": true
+				}
+			]
+		},
+		{
+			"id": "7a77a538-7ae0-4bc0-a9b4-c54cd0b502ad",
+			"name": "Client inexistant -> 404",
+			"url": "http://localhost:8081/clients/9999",
+			"time": 4,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "dd651c7d-a8c3-4808-9256-7014cff5a5f0",
+			"name": "Créer un client -> 201",
+			"url": "http://localhost:8081/clients",
+			"time": 155,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 201": true,
+				"Statut ACTIF par défaut": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 201": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Statut ACTIF par défaut": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				155
+			],
+			"allTests": [
+				{
+					"Statut HTTP 201": true,
+					"Statut ACTIF par défaut": true
+				}
+			]
+		},
+		{
+			"id": "67ac44ee-989a-49d4-8c34-02371b71c149",
+			"name": "Créer un client invalide -> 400",
+			"url": "http://localhost:8081/clients",
+			"time": 11,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Statut HTTP 400": true,
+				"Erreur de validation sur email": true,
+				"Erreur de validation sur nom": true,
+				"Erreur de validation sur revenusMensuels": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Erreur de validation sur email": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Erreur de validation sur nom": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Erreur de validation sur revenusMensuels": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Statut HTTP 400": true,
+					"Erreur de validation sur email": true,
+					"Erreur de validation sur nom": true,
+					"Erreur de validation sur revenusMensuels": true
+				}
+			]
+		},
+		{
+			"id": "e7ed0a47-644d-4587-ab15-7d75f38a09c0",
+			"name": "Email déjà utilisé -> 409",
+			"url": "http://localhost:8081/clients",
+			"time": 5,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "28c0a31e-702c-4233-8697-89f67e34e8ad",
+			"name": "Modifier le client créé -> 200",
+			"url": "http://localhost:8081/clients/5",
+			"time": 16,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				16
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "35531d95-4576-4a9e-8a62-3a75bc4a977a",
+			"name": "Modifier un client inexistant -> 404",
+			"url": "http://localhost:8081/clients/9999",
+			"time": 5,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "84d7fa29-df09-4ffb-89ed-8d94bf2a813b",
+			"name": "Désactiver le client créé -> 200",
+			"url": "http://localhost:8081/clients/5/desactivation",
+			"time": 4,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Statut INACTIF": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Statut INACTIF": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Statut INACTIF": true
+				}
+			]
+		},
+		{
+			"id": "8a41d883-fcd4-4753-95ba-66d34c861f8b",
+			"name": "Désactiver deux fois -> 409",
+			"url": "http://localhost:8081/clients/5/desactivation",
+			"time": 4,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "7148c34d-b6ee-4ce9-88f5-32d5348ecc93",
+			"name": "Garantie pour un client inactif -> 409",
+			"url": "http://localhost:8081/garanties",
+			"time": 9,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "ecc91933-948e-41a4-91b5-52e28558ac98",
+			"name": "Réactiver le client créé -> 200",
+			"url": "http://localhost:8081/clients/5/activation",
+			"time": 4,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "a135cc64-0473-4016-b5f1-146faad56b0e",
+			"name": "Lister les garanties",
+			"url": "http://localhost:8081/garanties",
+			"time": 10,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "3dbe0bed-951b-44d8-94d9-2187391da96b",
+			"name": "Garanties du client 1",
+			"url": "http://localhost:8081/clients/1/garanties",
+			"time": 10,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "132ac8e6-c8f0-4782-9f9f-74f766c03327",
+			"name": "Ajouter une garantie -> 201",
+			"url": "http://localhost:8081/garanties",
+			"time": 7,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 201": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Statut HTTP 201": true
+				}
+			]
+		},
+		{
+			"id": "b1c656ff-3265-483f-913f-b9efc8b96a3f",
+			"name": "Garantie pour un client inexistant -> 404",
+			"url": "http://localhost:8081/garanties",
+			"time": 4,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "c4b441ce-344a-47f6-92d5-b4af15bf8b69",
+			"name": "Garantie invalide (type inconnu) -> 400",
+			"url": "http://localhost:8081/garanties",
+			"time": 3,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Statut HTTP 400": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 400": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				3
+			],
+			"allTests": [
+				{
+					"Statut HTTP 400": true
+				}
+			]
+		},
+		{
+			"id": "0ad9c487-1356-4994-adde-4c7cdbbb2b58",
+			"name": "Garantie invalide (valeur négative) -> 400",
+			"url": "http://localhost:8081/garanties",
+			"time": 5,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Statut HTTP 400": true,
+				"Erreur de validation sur valeur": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Erreur de validation sur valeur": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Statut HTTP 400": true,
+					"Erreur de validation sur valeur": true
+				}
+			]
+		},
+		{
+			"id": "ee68c190-2f18-4d4c-a278-6ea3bddda7dc",
+			"name": "Modifier la garantie -> 200",
+			"url": "http://localhost:8081/garanties/4",
+			"time": 7,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "7f5a2311-4be8-4726-b7b8-a2ae3a3d36cf",
+			"name": "Supprimer un client qui a des garanties -> 409",
+			"url": "http://localhost:8081/clients/5",
+			"time": 5,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "e2af7c6b-bf0f-4466-9c21-4c1aa4c02026",
+			"name": "Supprimer la garantie -> 204",
+			"url": "http://localhost:8081/garanties/4",
+			"time": 8,
+			"responseCode": {
+				"code": 204,
+				"name": "No Content"
+			},
+			"tests": {
+				"Statut HTTP 204": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 204": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Statut HTTP 204": true
+				}
+			]
+		},
+		{
+			"id": "a4d35a1e-904c-409f-8bae-f33d3753cd72",
+			"name": "Garantie supprimée -> 404",
+			"url": "http://localhost:8081/garanties/4",
+			"time": 3,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				3
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "701be63c-f84a-404f-947d-ec07d268b618",
+			"name": "Supprimer le client -> 204",
+			"url": "http://localhost:8081/clients/5",
+			"time": 6,
+			"responseCode": {
+				"code": 204,
+				"name": "No Content"
+			},
+			"tests": {
+				"Statut HTTP 204": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 204": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				6
+			],
+			"allTests": [
+				{
+					"Statut HTTP 204": true
+				}
+			]
+		},
+		{
+			"id": "f40bcc2b-f5b9-435d-ad89-e3e6585c8294",
+			"name": "Lister les dossiers",
+			"url": "http://localhost:8082/credits",
+			"time": 363,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				363
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "9bb93b1b-7b20-4361-ad03-6355d33013e2",
+			"name": "Dossiers du client 1",
+			"url": "http://localhost:8082/credits?clientId=1",
+			"time": 28,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				28
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "3071cafa-99ee-42a3-abb4-84812ac28cea",
+			"name": "Dossiers EN_ETUDE",
+			"url": "http://localhost:8082/credits?statut=EN_ETUDE",
+			"time": 8,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "6efe249a-6417-4d73-b693-0a90d8554ce9",
+			"name": "Statut inconnu -> 400",
+			"url": "http://localhost:8082/credits?statut=PERDU",
+			"time": 8,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Statut HTTP 400": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 400": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Statut HTTP 400": true
+				}
+			]
+		},
+		{
+			"id": "8a9017cc-6217-4560-b400-9195db93de04",
+			"name": "Consulter le dossier 3 (DEBLOQUE)",
+			"url": "http://localhost:8082/credits/3",
+			"time": 8,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "8505e44c-02b9-4f56-8595-71a1d0f8e2a5",
+			"name": "Échéancier du dossier 3",
+			"url": "http://localhost:8082/credits/3/echeancier",
+			"time": 15,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"12 échéances": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"12 échéances": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				15
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"12 échéances": true
+				}
+			]
+		},
+		{
+			"id": "ebb2e127-5040-488a-9fc4-a0928c4e1dc7",
+			"name": "Dossier inexistant -> 404",
+			"url": "http://localhost:8082/credits/9999",
+			"time": 3,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				3
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "9aed3ea8-8269-4502-bebc-b9d4adca2514",
+			"name": "Déposer une demande -> 201 (DEPOSE)",
+			"url": "http://localhost:8082/credits",
+			"time": 117,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 201": true,
+				"Statut DEPOSE": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 201": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Statut DEPOSE": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				117
+			],
+			"allTests": [
+				{
+					"Statut HTTP 201": true,
+					"Statut DEPOSE": true
+				}
+			]
+		},
+		{
+			"id": "edc02d70-70f1-4bc0-8199-18e25097cbcd",
+			"name": "Demande invalide -> 400",
+			"url": "http://localhost:8082/credits",
+			"time": 13,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Statut HTTP 400": true,
+				"Erreur de validation sur clientId": true,
+				"Erreur de validation sur montantDemande": true,
+				"Erreur de validation sur dureeMois": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Erreur de validation sur clientId": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Erreur de validation sur montantDemande": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Erreur de validation sur dureeMois": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				13
+			],
+			"allTests": [
+				{
+					"Statut HTTP 400": true,
+					"Erreur de validation sur clientId": true,
+					"Erreur de validation sur montantDemande": true,
+					"Erreur de validation sur dureeMois": true
+				}
+			]
+		},
+		{
+			"id": "9868cd61-693f-4162-9adf-6e774ffe09b0",
+			"name": "Modifier la demande DEPOSE -> 200",
+			"url": "http://localhost:8082/credits/6",
+			"time": 13,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				13
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "b1476032-977a-4294-8291-d5458d0b2779",
+			"name": "Modifier un dossier ACCORDE -> 409",
+			"url": "http://localhost:8082/credits/5",
+			"time": 5,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "a736f9e8-45bb-482a-9c9a-22659f570905",
+			"name": "Supprimer un dossier DEBLOQUE -> 409",
+			"url": "http://localhost:8082/credits/3",
+			"time": 4,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "5b0d975d-c8e6-4ae7-a5a3-5fede968a667",
+			"name": "Supprimer la demande DEPOSE -> 204",
+			"url": "http://localhost:8082/credits/6",
+			"time": 21,
+			"responseCode": {
+				"code": 204,
+				"name": "No Content"
+			},
+			"tests": {
+				"Statut HTTP 204": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 204": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				21
+			],
+			"allTests": [
+				{
+					"Statut HTTP 204": true
+				}
+			]
+		},
+		{
+			"id": "a8118625-374f-4edb-87a3-78cead43768c",
+			"name": "Lister les comptes de trésorerie",
+			"url": "http://localhost:8083/tresoreries",
+			"time": 134,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				134
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "a20b92f0-54e7-4c7a-9ed5-7455627775ec",
+			"name": "Consulter le compte 1",
+			"url": "http://localhost:8083/tresoreries/1",
+			"time": 9,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "d99b0cf7-fb08-4647-a6fa-655512f832cd",
+			"name": "Compte inexistant -> 404",
+			"url": "http://localhost:8083/tresoreries/9999",
+			"time": 11,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "357a725f-499b-4b4d-b3a7-2874e2541c8d",
+			"name": "Créer un compte -> 201",
+			"url": "http://localhost:8083/tresoreries",
+			"time": 86,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 201": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				86
+			],
+			"allTests": [
+				{
+					"Statut HTTP 201": true
+				}
+			]
+		},
+		{
+			"id": "32d7387a-d152-43ba-a62f-3262d4aea5d5",
+			"name": "Libellé déjà utilisé -> 409",
+			"url": "http://localhost:8083/tresoreries",
+			"time": 10,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "502ec3c8-0f86-4b87-bf85-0fbccb292971",
+			"name": "Compte invalide -> 400",
+			"url": "http://localhost:8083/tresoreries",
+			"time": 19,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Statut HTTP 400": true,
+				"Erreur de validation sur libelle": true,
+				"Erreur de validation sur soldeDisponible": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Erreur de validation sur libelle": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Erreur de validation sur soldeDisponible": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				19
+			],
+			"allTests": [
+				{
+					"Statut HTTP 400": true,
+					"Erreur de validation sur libelle": true,
+					"Erreur de validation sur soldeDisponible": true
+				}
+			]
+		},
+		{
+			"id": "2cb189a3-2ee7-4520-9297-410ec8404448",
+			"name": "Renommer le compte (solde ignoré) -> 200",
+			"url": "http://localhost:8083/tresoreries/4",
+			"time": 38,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Le solde n'est pas modifié par PUT": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Le solde n'est pas modifié par PUT": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				38
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Le solde n'est pas modifié par PUT": true
+				}
+			]
+		},
+		{
+			"id": "e97e06e5-ea0f-4879-8d34-32d12e1f76de",
+			"name": "Approvisionner le compte -> 200",
+			"url": "http://localhost:8083/tresoreries/4/approvisionnement",
+			"time": 13,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Solde = 150 000": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Solde = 150 000": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				13
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Solde = 150 000": true
+				}
+			]
+		},
+		{
+			"id": "2af11041-51ab-41b1-9438-96c8c076aab3",
+			"name": "Approvisionnement négatif -> 400",
+			"url": "http://localhost:8083/tresoreries/4/approvisionnement",
+			"time": 4,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Statut HTTP 400": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 400": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 400": true
+				}
+			]
+		},
+		{
+			"id": "2efd9c9b-e7ac-491f-a718-2e63e75fe113",
+			"name": "Supprimer un compte avec historique -> 409",
+			"url": "http://localhost:8083/tresoreries/1",
+			"time": 30,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				30
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "0e967ef3-5731-4043-bc9d-1ea40e2b2b2a",
+			"name": "Supprimer le compte créé -> 204",
+			"url": "http://localhost:8083/tresoreries/4",
+			"time": 11,
+			"responseCode": {
+				"code": 204,
+				"name": "No Content"
+			},
+			"tests": {
+				"Statut HTTP 204": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 204": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Statut HTTP 204": true
+				}
+			]
+		},
+		{
+			"id": "dd10fd1a-bfb9-413e-bf71-ea687485a9cc",
+			"name": "Lister les décaissements",
+			"url": "http://localhost:8083/decaissements",
+			"time": 22,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				22
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "fc365add-7c04-4a59-b0d8-507e28efae68",
+			"name": "Décaissements du dossier 3",
+			"url": "http://localhost:8083/decaissements?dossierId=3",
+			"time": 10,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "190c17aa-9078-4ced-a2b4-87add428720d",
+			"name": "Décaissement inexistant -> 404",
+			"url": "http://localhost:8083/decaissements/9999",
+			"time": 4,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "d631b740-5c2c-49bb-977b-4353cf26154d",
+			"name": "Clients via Gateway",
+			"url": "http://localhost:8080/service-clients/clients",
+			"time": 491,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				491
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "18223674-4f06-4866-8007-76d6e645d5f3",
+			"name": "Garanties via Gateway",
+			"url": "http://localhost:8080/service-clients/garanties",
+			"time": 18,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				18
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "b0beaad3-6be5-4512-b81f-5c6c77000083",
+			"name": "Dossiers via Gateway",
+			"url": "http://localhost:8080/service-credit/credits",
+			"time": 92,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				92
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "8fb1b2ef-ad50-4dbb-8939-c791763064db",
+			"name": "Échéancier via Gateway",
+			"url": "http://localhost:8080/service-credit/credits/3/echeancier",
+			"time": 20,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				20
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "dbdaceec-17da-4d12-b4a9-0e3335bcccf5",
+			"name": "Trésoreries via Gateway",
+			"url": "http://localhost:8080/service-decaissements/tresoreries",
+			"time": 43,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse = liste": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse = liste": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				43
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse = liste": true
+				}
+			]
+		},
+		{
+			"id": "1e340c93-3b02-498b-8eab-27214c897d20",
+			"name": "Créer un client via Gateway -> 201",
+			"url": "http://localhost:8080/service-clients/clients",
+			"time": 23,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 201": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				23
+			],
+			"allTests": [
+				{
+					"Statut HTTP 201": true
+				}
+			]
+		},
+		{
+			"id": "21866cb9-c888-4f99-9ffb-90c095844069",
+			"name": "Erreur 404 propagée par la Gateway",
+			"url": "http://localhost:8080/service-credit/credits/9999",
+			"time": 9,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "cdda0e55-175e-4ed6-b983-c429fb6cad2a",
+			"name": "Supprimer le client créé via Gateway -> 204",
+			"url": "http://localhost:8080/service-clients/clients/6",
+			"time": 15,
+			"responseCode": {
+				"code": 204,
+				"name": "No Content"
+			},
+			"tests": {
+				"Statut HTTP 204": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 204": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				15
+			],
+			"allTests": [
+				{
+					"Statut HTTP 204": true
+				}
+			]
+		},
+		{
+			"id": "f49ebd07-dc66-44b6-af0c-aa846f300681",
+			"name": "Clients (route statique)",
+			"url": "http://localhost:8080/clients",
+			"time": 49,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 200": false,
+				"Réponse = liste": false
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Réponse = liste": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				49
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": false,
+					"Réponse = liste": false
+				}
+			]
+		},
+		{
+			"id": "494a085b-abcf-4c33-a9e3-8385cd84a43d",
+			"name": "Garanties (route statique)",
+			"url": "http://localhost:8080/garanties",
+			"time": 4,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 200": false,
+				"Réponse = liste": false
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Réponse = liste": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": false,
+					"Réponse = liste": false
+				}
+			]
+		},
+		{
+			"id": "ae74bd19-08f7-40e9-96bf-dc455c143d4d",
+			"name": "Dossiers (route statique)",
+			"url": "http://localhost:8080/credits",
+			"time": 5,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 200": false,
+				"Réponse = liste": false
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Réponse = liste": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": false,
+					"Réponse = liste": false
+				}
+			]
+		},
+		{
+			"id": "214ebc4e-aef7-4e1c-914a-cd8dac9a5e85",
+			"name": "Trésoreries (route statique)",
+			"url": "http://localhost:8080/tresoreries",
+			"time": 4,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 200": false,
+				"Réponse = liste": false
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Réponse = liste": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": false,
+					"Réponse = liste": false
+				}
+			]
+		},
+		{
+			"id": "d826d7c1-1089-4d4f-8b26-ac4e28861023",
+			"name": "Décaissements (route statique)",
+			"url": "http://localhost:8080/decaissements",
+			"time": 3,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 200": false,
+				"Réponse = liste": false
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Réponse = liste": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				3
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": false,
+					"Réponse = liste": false
+				}
+			]
+		},
+		{
+			"id": "fd71fbb0-4711-4a6d-a1a0-0c69eccbba42",
+			"name": "Dépôt pour un client inexistant -> 404 (vérifié via Feign)",
+			"url": "http://localhost:8082/credits",
+			"time": 14,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "295d0c3b-9ec8-4899-abd1-6395706fa429",
+			"name": "Dépôt pour un client inactif -> 409",
+			"url": "http://localhost:8082/credits",
+			"time": 14,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "b1f2444a-fb51-4ff9-9d5e-eecf9e2b1168",
+			"name": "Déposer une demande (client 2) -> 201",
+			"url": "http://localhost:8082/credits",
+			"time": 36,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 201": true,
+				"Statut DEPOSE": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 201": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Statut DEPOSE": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				36
+			],
+			"allTests": [
+				{
+					"Statut HTTP 201": true,
+					"Statut DEPOSE": true
+				}
+			]
+		},
+		{
+			"id": "9bcbcf46-8554-4019-bd41-8251e365f1da",
+			"name": "V6 - Rejouer le même dépôt (même Idempotency-Key) -> 200, même dossier",
+			"url": "http://localhost:8082/credits",
+			"time": 5,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Aucun doublon : même id": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Aucun doublon : même id": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Aucun doublon : même id": true
+				}
+			]
+		},
+		{
+			"id": "6617057c-43a5-4061-b14b-2431eb7dcdb3",
+			"name": "Décider avant l'étude -> 409",
+			"url": "http://localhost:8082/credits/7/decision",
+			"time": 4,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "8e3aa105-eb38-4227-8a65-bc8a5626a400",
+			"name": "Mettre à l'étude -> EN_ETUDE + score relevé via Feign",
+			"url": "http://localhost:8082/credits/7/etude",
+			"time": 14,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Statut EN_ETUDE": true,
+				"Score du client 2 = 650": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Statut EN_ETUDE": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Score du client 2 = 650": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Statut EN_ETUDE": true,
+					"Score du client 2 = 650": true
+				}
+			]
+		},
+		{
+			"id": "56965236-0eb2-434a-a49d-4fc9db5d8ce6",
+			"name": "Décision -> ACCORDE (taux 6,50 %)",
+			"url": "http://localhost:8082/credits/7/decision",
+			"time": 331,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Statut ACCORDE": true,
+				"Montant accordé 25 000": true,
+				"Taux 6,50 %": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Statut ACCORDE": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Montant accordé 25 000": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Taux 6,50 %": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				331
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Statut ACCORDE": true,
+					"Montant accordé 25 000": true,
+					"Taux 6,50 %": true
+				}
+			]
+		},
+		{
+			"id": "c33fb26c-4d68-4287-a2ec-706c7919a986",
+			"name": "Échéancier généré mais INACTIF",
+			"url": "http://localhost:8082/credits/7/echeancier",
+			"time": 7,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"24 échéances INACTIVE": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"24 échéances INACTIVE": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"24 échéances INACTIVE": true
+				}
+			]
+		},
+		{
+			"id": "00283f23-17c5-46b5-b6d0-1e0b23991693",
+			"name": "Versement d'un dossier non accordé (dossier 1) -> 409",
+			"url": "http://localhost:8083/decaissements",
+			"time": 68,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				68
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "6a1e1958-01fd-4e66-bb6b-90daef525eba",
+			"name": "Versement sur un compte au solde insuffisant -> 409",
+			"url": "http://localhost:8083/decaissements",
+			"time": 91,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				91
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "9e216b96-6faf-4b00-bfed-80b118d57a76",
+			"name": "Versement sur un dossier inexistant -> 404",
+			"url": "http://localhost:8083/decaissements",
+			"time": 11,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Statut HTTP 404": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Statut HTTP 404": true
+				}
+			]
+		},
+		{
+			"id": "19d527ca-e636-49f6-935f-c8bd21946c6b",
+			"name": "Verser les fonds -> 201 VERSE",
+			"url": "http://localhost:8083/decaissements",
+			"time": 270,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 201": true,
+				"Statut VERSE": true,
+				"Montant = montant accordé": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 201": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Statut VERSE": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Montant = montant accordé": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				270
+			],
+			"allTests": [
+				{
+					"Statut HTTP 201": true,
+					"Statut VERSE": true,
+					"Montant = montant accordé": true
+				}
+			]
+		},
+		{
+			"id": "029ca851-0cf6-414f-8374-c5c058242cd6",
+			"name": "V6 - Rejouer le versement (même Idempotency-Key) -> 200, même versement",
+			"url": "http://localhost:8083/decaissements",
+			"time": 13,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Aucun double versement : même id": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Aucun double versement : même id": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				13
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Aucun double versement : même id": true
+				}
+			]
+		},
+		{
+			"id": "4e8a58c2-b6bb-467d-b354-306896f2e51c",
+			"name": "Second versement (nouvelle clé) -> 409 : versé une seule fois",
+			"url": "http://localhost:8083/decaissements",
+			"time": 5,
+			"responseCode": {
+				"code": 409,
+				"name": "Conflict"
+			},
+			"tests": {
+				"Statut HTTP 409": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Statut HTTP 409": true
+				}
+			]
+		},
+		{
+			"id": "70c72bcf-5d46-4627-96e7-068574445079",
+			"name": "Trésorerie débitée une seule fois (500 000 - 25 000)",
+			"url": "http://localhost:8083/tresoreries/1",
+			"time": 4,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Solde = 475 000": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Solde = 475 000": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Solde = 475 000": true
+				}
+			]
+		},
+		{
+			"id": "8e9a90e4-c409-4e85-971c-763479c0264b",
+			"name": "Dossier DEBLOQUE après versement",
+			"url": "http://localhost:8082/credits/7",
+			"time": 6,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Statut DEBLOQUE": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Statut DEBLOQUE": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				6
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Statut DEBLOQUE": true
+				}
+			]
+		},
+		{
+			"id": "1670bc26-a2e3-4472-bc1f-3aabccf25d9f",
+			"name": "Échéancier activé (A_PAYER)",
+			"url": "http://localhost:8082/credits/7/echeancier",
+			"time": 7,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Échéances A_PAYER": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Échéances A_PAYER": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Échéances A_PAYER": true
+				}
+			]
+		},
+		{
+			"id": "a943fd9f-682b-45e3-b3f4-ec91cea715b6",
+			"name": "Consultation enrichie (DTO composé via Feign)",
+			"url": "http://localhost:8082/credits/7/details",
+			"time": 43,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Client agrégé": true,
+				"Garanties agrégées": true,
+				"Échéancier local": true,
+				"Décaissement agrégé": true,
+				"Données complètes": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Client agrégé": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Garanties agrégées": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Échéancier local": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Décaissement agrégé": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Données complètes": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				43
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Client agrégé": true,
+					"Garanties agrégées": true,
+					"Échéancier local": true,
+					"Décaissement agrégé": true,
+					"Données complètes": true
+				}
+			]
+		},
+		{
+			"id": "e1e38004-5a1e-4e9e-b499-144c0a3fdbfa",
+			"name": "Consultation enrichie via la Gateway",
+			"url": "http://localhost:8080/service-credit/credits/7/details",
+			"time": 35,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				35
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "1713b07b-4e91-4c54-b795-eb10217708cc",
+			"name": "Refus - déposer pour le client 3 (score 480)",
+			"url": "http://localhost:8082/credits",
+			"time": 9,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 201": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Statut HTTP 201": true
+				}
+			]
+		},
+		{
+			"id": "cb8bd06a-8d16-49f4-a0c8-6d820c9d9057",
+			"name": "Refus - mise à l'étude",
+			"url": "http://localhost:8082/credits/8/etude",
+			"time": 9,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "f83f0d72-537d-467a-9ac6-3d35de25883d",
+			"name": "Refus - décision -> REFUSE (score insuffisant)",
+			"url": "http://localhost:8082/credits/8/decision",
+			"time": 10,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Statut REFUSE": true,
+				"Motif de refus": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Statut REFUSE": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Motif de refus": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Statut REFUSE": true,
+					"Motif de refus": true
+				}
+			]
+		},
+		{
+			"id": "74761fef-ad11-4df1-9307-3325282b2613",
+			"name": "Attendre la consommation des messages (2 s)",
+			"url": "http://localhost:8084/actuator/health",
+			"time": 155,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				155
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "2758a578-4f83-4dbf-9d67-e8472bc3f65a",
+			"name": "Notifications reçues par notification-service",
+			"url": "http://localhost:8084/notifications",
+			"time": 9,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Accord notifié (LOAN_APPROVED)": true,
+				"Versement notifié (DISBURSEMENT_PAID)": true,
+				"Emails envoyés": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Accord notifié (LOAN_APPROVED)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Versement notifié (DISBURSEMENT_PAID)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Emails envoyés": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Accord notifié (LOAN_APPROVED)": true,
+					"Versement notifié (DISBURSEMENT_PAID)": true,
+					"Emails envoyés": true
+				}
+			]
+		},
+		{
+			"id": "9f4f8c19-4972-4ff8-92f3-489a48bc932c",
+			"name": "Emails présents dans MailHog",
+			"url": "http://localhost:8025/api/v2/messages",
+			"time": 14,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Au moins 2 emails": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Au moins 2 emails": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Au moins 2 emails": true
+				}
+			]
+		},
+		{
+			"id": "458cb53e-db0f-4870-a9de-818b7f5ab29e",
+			"name": "Notifications via la Gateway",
+			"url": "http://localhost:8080/notification-service/notifications",
+			"time": 31,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				31
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "eedb594c-35b9-4acf-8c28-55ab8901ceac",
+			"name": "État des circuit breakers de service-credit",
+			"url": "http://localhost:8082/actuator/circuitbreakers",
+			"time": 19,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				19
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true
+				}
+			]
+		},
+		{
+			"id": "2001c1a3-cfb3-4456-a765-a6b56b8882d4",
+			"name": "[service-clients ARRÊTÉ] Dépôt -> 503 après 3 tentatives",
+			"url": "http://localhost:8082/credits",
+			"time": 40,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 503": false
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 503": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				40
+			],
+			"allTests": [
+				{
+					"Statut HTTP 503": false
+				}
+			]
+		},
+		{
+			"id": "ad25ab78-b80d-46b4-807c-ba828625bc85",
+			"name": "[service-clients ARRÊTÉ] Consultation enrichie -> 200, données partielles",
+			"url": "http://localhost:8082/credits/3/details",
+			"time": 42,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Statut HTTP 200": true,
+				"Réponse partielle": false
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Réponse partielle": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				42
+			],
+			"allTests": [
+				{
+					"Statut HTTP 200": true,
+					"Réponse partielle": false
+				}
+			]
+		},
+		{
+			"id": "13c08ceb-9615-4ccf-9a11-183da4a6edeb",
+			"name": "[service-credit ARRÊTÉ] Versement -> 503",
+			"url": "http://localhost:8083/decaissements",
+			"time": 29,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Statut HTTP 503": false
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 503": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				29
+			],
+			"allTests": [
+				{
+					"Statut HTTP 503": false
+				}
+			]
+		},
+		{
+			"id": "929ea89e-9412-4943-933f-a94d869d7bd3",
+			"name": "Erreur centralisée : JSON illisible -> 400",
+			"url": "http://localhost:8082/credits",
+			"time": 6,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Statut HTTP 400": true
+			},
+			"testPassFailCounts": {
+				"Statut HTTP 400": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				6
+			],
+			"allTests": [
+				{
+					"Statut HTTP 400": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 4039,
+	"collection": {
+		"requests": [
+			{
+				"id": "adbaefd3-8a44-4d64-aca1-9ec1448e5d79",
+				"method": "GET"
+			},
+			{
+				"id": "65ac30b6-8dfa-4d23-8572-c1d82dbad314",
+				"method": "GET"
+			},
+			{
+				"id": "71c157c0-d4d1-4446-86c1-f212369c71c6",
+				"method": "GET"
+			},
+			{
+				"id": "da7b3567-115d-4089-a3cb-9f65ecfa107f",
+				"method": "GET"
+			},
+			{
+				"id": "b281c0ff-6237-4551-a3fd-16041e3134bb",
+				"method": "GET"
+			},
+			{
+				"id": "3473b5e6-bdba-4986-b69f-3463065bdf48",
+				"method": "GET"
+			},
+			{
+				"id": "f044d0aa-7ab9-43f0-a29d-b71e651916f0",
+				"method": "GET"
+			},
+			{
+				"id": "658a4298-155f-4271-b53e-63ded3e5b3be",
+				"method": "GET"
+			},
+			{
+				"id": "2e418f1b-86fc-4bb0-a6a4-2bcb00d05b98",
+				"method": "GET"
+			},
+			{
+				"id": "7a77a538-7ae0-4bc0-a9b4-c54cd0b502ad",
+				"method": "GET"
+			},
+			{
+				"id": "dd651c7d-a8c3-4808-9256-7014cff5a5f0",
+				"method": "POST"
+			},
+			{
+				"id": "67ac44ee-989a-49d4-8c34-02371b71c149",
+				"method": "POST"
+			},
+			{
+				"id": "e7ed0a47-644d-4587-ab15-7d75f38a09c0",
+				"method": "POST"
+			},
+			{
+				"id": "28c0a31e-702c-4233-8697-89f67e34e8ad",
+				"method": "PUT"
+			},
+			{
+				"id": "35531d95-4576-4a9e-8a62-3a75bc4a977a",
+				"method": "PUT"
+			},
+			{
+				"id": "84d7fa29-df09-4ffb-89ed-8d94bf2a813b",
+				"method": "POST"
+			},
+			{
+				"id": "8a41d883-fcd4-4753-95ba-66d34c861f8b",
+				"method": "POST"
+			},
+			{
+				"id": "7148c34d-b6ee-4ce9-88f5-32d5348ecc93",
+				"method": "POST"
+			},
+			{
+				"id": "ecc91933-948e-41a4-91b5-52e28558ac98",
+				"method": "POST"
+			},
+			{
+				"id": "a135cc64-0473-4016-b5f1-146faad56b0e",
+				"method": "GET"
+			},
+			{
+				"id": "3dbe0bed-951b-44d8-94d9-2187391da96b",
+				"method": "GET"
+			},
+			{
+				"id": "132ac8e6-c8f0-4782-9f9f-74f766c03327",
+				"method": "POST"
+			},
+			{
+				"id": "b1c656ff-3265-483f-913f-b9efc8b96a3f",
+				"method": "POST"
+			},
+			{
+				"id": "c4b441ce-344a-47f6-92d5-b4af15bf8b69",
+				"method": "POST"
+			},
+			{
+				"id": "0ad9c487-1356-4994-adde-4c7cdbbb2b58",
+				"method": "POST"
+			},
+			{
+				"id": "ee68c190-2f18-4d4c-a278-6ea3bddda7dc",
+				"method": "PUT"
+			},
+			{
+				"id": "7f5a2311-4be8-4726-b7b8-a2ae3a3d36cf",
+				"method": "DELETE"
+			},
+			{
+				"id": "e2af7c6b-bf0f-4466-9c21-4c1aa4c02026",
+				"method": "DELETE"
+			},
+			{
+				"id": "a4d35a1e-904c-409f-8bae-f33d3753cd72",
+				"method": "GET"
+			},
+			{
+				"id": "701be63c-f84a-404f-947d-ec07d268b618",
+				"method": "DELETE"
+			},
+			{
+				"id": "f40bcc2b-f5b9-435d-ad89-e3e6585c8294",
+				"method": "GET"
+			},
+			{
+				"id": "9bb93b1b-7b20-4361-ad03-6355d33013e2",
+				"method": "GET"
+			},
+			{
+				"id": "3071cafa-99ee-42a3-abb4-84812ac28cea",
+				"method": "GET"
+			},
+			{
+				"id": "6efe249a-6417-4d73-b693-0a90d8554ce9",
+				"method": "GET"
+			},
+			{
+				"id": "8a9017cc-6217-4560-b400-9195db93de04",
+				"method": "GET"
+			},
+			{
+				"id": "8505e44c-02b9-4f56-8595-71a1d0f8e2a5",
+				"method": "GET"
+			},
+			{
+				"id": "ebb2e127-5040-488a-9fc4-a0928c4e1dc7",
+				"method": "GET"
+			},
+			{
+				"id": "9aed3ea8-8269-4502-bebc-b9d4adca2514",
+				"method": "POST"
+			},
+			{
+				"id": "edc02d70-70f1-4bc0-8199-18e25097cbcd",
+				"method": "POST"
+			},
+			{
+				"id": "9868cd61-693f-4162-9adf-6e774ffe09b0",
+				"method": "PUT"
+			},
+			{
+				"id": "b1476032-977a-4294-8291-d5458d0b2779",
+				"method": "PUT"
+			},
+			{
+				"id": "a736f9e8-45bb-482a-9c9a-22659f570905",
+				"method": "DELETE"
+			},
+			{
+				"id": "5b0d975d-c8e6-4ae7-a5a3-5fede968a667",
+				"method": "DELETE"
+			},
+			{
+				"id": "a8118625-374f-4edb-87a3-78cead43768c",
+				"method": "GET"
+			},
+			{
+				"id": "a20b92f0-54e7-4c7a-9ed5-7455627775ec",
+				"method": "GET"
+			},
+			{
+				"id": "d99b0cf7-fb08-4647-a6fa-655512f832cd",
+				"method": "GET"
+			},
+			{
+				"id": "357a725f-499b-4b4d-b3a7-2874e2541c8d",
+				"method": "POST"
+			},
+			{
+				"id": "32d7387a-d152-43ba-a62f-3262d4aea5d5",
+				"method": "POST"
+			},
+			{
+				"id": "502ec3c8-0f86-4b87-bf85-0fbccb292971",
+				"method": "POST"
+			},
+			{
+				"id": "2cb189a3-2ee7-4520-9297-410ec8404448",
+				"method": "PUT"
+			},
+			{
+				"id": "e97e06e5-ea0f-4879-8d34-32d12e1f76de",
+				"method": "POST"
+			},
+			{
+				"id": "2af11041-51ab-41b1-9438-96c8c076aab3",
+				"method": "POST"
+			},
+			{
+				"id": "2efd9c9b-e7ac-491f-a718-2e63e75fe113",
+				"method": "DELETE"
+			},
+			{
+				"id": "0e967ef3-5731-4043-bc9d-1ea40e2b2b2a",
+				"method": "DELETE"
+			},
+			{
+				"id": "dd10fd1a-bfb9-413e-bf71-ea687485a9cc",
+				"method": "GET"
+			},
+			{
+				"id": "fc365add-7c04-4a59-b0d8-507e28efae68",
+				"method": "GET"
+			},
+			{
+				"id": "190c17aa-9078-4ced-a2b4-87add428720d",
+				"method": "GET"
+			},
+			{
+				"id": "d631b740-5c2c-49bb-977b-4353cf26154d",
+				"method": "GET"
+			},
+			{
+				"id": "18223674-4f06-4866-8007-76d6e645d5f3",
+				"method": "GET"
+			},
+			{
+				"id": "b0beaad3-6be5-4512-b81f-5c6c77000083",
+				"method": "GET"
+			},
+			{
+				"id": "8fb1b2ef-ad50-4dbb-8939-c791763064db",
+				"method": "GET"
+			},
+			{
+				"id": "dbdaceec-17da-4d12-b4a9-0e3335bcccf5",
+				"method": "GET"
+			},
+			{
+				"id": "1e340c93-3b02-498b-8eab-27214c897d20",
+				"method": "POST"
+			},
+			{
+				"id": "21866cb9-c888-4f99-9ffb-90c095844069",
+				"method": "GET"
+			},
+			{
+				"id": "cdda0e55-175e-4ed6-b983-c429fb6cad2a",
+				"method": "DELETE"
+			},
+			{
+				"id": "f49ebd07-dc66-44b6-af0c-aa846f300681",
+				"method": "GET"
+			},
+			{
+				"id": "494a085b-abcf-4c33-a9e3-8385cd84a43d",
+				"method": "GET"
+			},
+			{
+				"id": "ae74bd19-08f7-40e9-96bf-dc455c143d4d",
+				"method": "GET"
+			},
+			{
+				"id": "214ebc4e-aef7-4e1c-914a-cd8dac9a5e85",
+				"method": "GET"
+			},
+			{
+				"id": "d826d7c1-1089-4d4f-8b26-ac4e28861023",
+				"method": "GET"
+			},
+			{
+				"id": "fd71fbb0-4711-4a6d-a1a0-0c69eccbba42",
+				"method": "POST"
+			},
+			{
+				"id": "295d0c3b-9ec8-4899-abd1-6395706fa429",
+				"method": "POST"
+			},
+			{
+				"id": "b1f2444a-fb51-4ff9-9d5e-eecf9e2b1168",
+				"method": "POST"
+			},
+			{
+				"id": "9bcbcf46-8554-4019-bd41-8251e365f1da",
+				"method": "POST"
+			},
+			{
+				"id": "6617057c-43a5-4061-b14b-2431eb7dcdb3",
+				"method": "POST"
+			},
+			{
+				"id": "8e3aa105-eb38-4227-8a65-bc8a5626a400",
+				"method": "POST"
+			},
+			{
+				"id": "56965236-0eb2-434a-a49d-4fc9db5d8ce6",
+				"method": "POST"
+			},
+			{
+				"id": "c33fb26c-4d68-4287-a2ec-706c7919a986",
+				"method": "GET"
+			},
+			{
+				"id": "00283f23-17c5-46b5-b6d0-1e0b23991693",
+				"method": "POST"
+			},
+			{
+				"id": "6a1e1958-01fd-4e66-bb6b-90daef525eba",
+				"method": "POST"
+			},
+			{
+				"id": "9e216b96-6faf-4b00-bfed-80b118d57a76",
+				"method": "POST"
+			},
+			{
+				"id": "19d527ca-e636-49f6-935f-c8bd21946c6b",
+				"method": "POST"
+			},
+			{
+				"id": "029ca851-0cf6-414f-8374-c5c058242cd6",
+				"method": "POST"
+			},
+			{
+				"id": "4e8a58c2-b6bb-467d-b354-306896f2e51c",
+				"method": "POST"
+			},
+			{
+				"id": "70c72bcf-5d46-4627-96e7-068574445079",
+				"method": "GET"
+			},
+			{
+				"id": "8e9a90e4-c409-4e85-971c-763479c0264b",
+				"method": "GET"
+			},
+			{
+				"id": "1670bc26-a2e3-4472-bc1f-3aabccf25d9f",
+				"method": "GET"
+			},
+			{
+				"id": "a943fd9f-682b-45e3-b3f4-ec91cea715b6",
+				"method": "GET"
+			},
+			{
+				"id": "e1e38004-5a1e-4e9e-b499-144c0a3fdbfa",
+				"method": "GET"
+			},
+			{
+				"id": "1713b07b-4e91-4c54-b795-eb10217708cc",
+				"method": "POST"
+			},
+			{
+				"id": "cb8bd06a-8d16-49f4-a0c8-6d820c9d9057",
+				"method": "POST"
+			},
+			{
+				"id": "f83f0d72-537d-467a-9ac6-3d35de25883d",
+				"method": "POST"
+			},
+			{
+				"id": "74761fef-ad11-4df1-9307-3325282b2613",
+				"method": "GET"
+			},
+			{
+				"id": "2758a578-4f83-4dbf-9d67-e8472bc3f65a",
+				"method": "GET"
+			},
+			{
+				"id": "9f4f8c19-4972-4ff8-92f3-489a48bc932c",
+				"method": "GET"
+			},
+			{
+				"id": "458cb53e-db0f-4870-a9de-818b7f5ab29e",
+				"method": "GET"
+			},
+			{
+				"id": "eedb594c-35b9-4acf-8c28-55ab8901ceac",
+				"method": "GET"
+			},
+			{
+				"id": "2001c1a3-cfb3-4456-a765-a6b56b8882d4",
+				"method": "POST"
+			},
+			{
+				"id": "ad25ab78-b80d-46b4-807c-ba828625bc85",
+				"method": "GET"
+			},
+			{
+				"id": "13c08ceb-9615-4ccf-9a11-183da4a6edeb",
+				"method": "POST"
+			},
+			{
+				"id": "929ea89e-9412-4943-933f-a94d869d7bd3",
+				"method": "POST"
+			}
+		]
+	}
+}
