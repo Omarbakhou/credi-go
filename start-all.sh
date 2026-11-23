@@ -5,7 +5,7 @@ cd "$(dirname "$0")" || exit 1
 mkdir -p logs
 [ -f service-registry/target/service-registry-0.0.1-SNAPSHOT.jar ] || mvn -q clean package -DskipTests
 docker compose up -d
-pkill -f 'credi-go/.*-0.0.1-SNAPSHOT.jar' 2>/dev/null; sleep 2
+pkill -f -- '-0.0.1-SNAPSHOT.jar' 2>/dev/null; sleep 2
 run() { nohup $JAVA_HOME/bin/java -jar $1/target/$1-0.0.1-SNAPSHOT.jar > logs/$1.log 2>&1 & }
 run service-registry; run config-server
 echo "Attente Eureka + Config Server..."
