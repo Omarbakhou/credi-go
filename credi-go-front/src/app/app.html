@@ -1,0 +1,170 @@
+<header class="entete">
+  <div>
+    <h1>Credi-Go</h1>
+    <p>Octroi de crédits à la consommation · interface Angular sur l'API Gateway (localhost:8080)</p>
+  </div>
+  <button class="secondaire" (click)="rafraichir()">Rafraîchir</button>
+</header>
+
+<nav class="onglets">
+  <button [class.actif]="onglet() === 'dossiers'" (click)="onglet.set('dossiers')">Dossiers de crédit ({{ dossiers().length }})</button>
+  <button [class.actif]="onglet() === 'clients'" (click)="onglet.set('clients')">Clients ({{ clients().length }})</button>
+  <button [class.actif]="onglet() === 'tresorerie'" (click)="onglet.set('tresorerie')">Trésorerie</button>
+  <button [class.actif]="onglet() === 'notifications'" (click)="onglet.set('notifications')">Notifications ({{ notifications().length }})</button>
+</nav>
+
+@if (message(); as m) {
+  <div class="message" [class.ok]="m.type === 'ok'" [class.err]="m.type === 'err'">
+    <span>{{ m.texte }}</span>
+    <button class="fermer" (click)="message.set(null)">×</button>
+  </div>
+}
+
+<main>
+  <!-- ======================= DOSSIERS ======================= -->
+  @if (onglet() === 'dossiers') {
+    <section class="carte">
+      <h2>Nouvelle demande de crédit</h2>
+      <form class="formulaire" (ngSubmit)="deposer()">
+        <label>Client
+          <select name="clientId" [(ngModel)]="nouvelle.clientId">
+            @for (c of clients(); track c.id) {
+              <option [ngValue]="c.id">{{ c.nom }} — score {{ c.scoreInterne }} ({{ c.statut }})</option>
+            }
+          </select>
+        </label>
+        <label>Montant (MAD) <input name="montant" type="number" min="1000" [(ngModel)]="nouvelle.montantDemande"></label>
+        <label>Durée (mois) <input name="duree" type="number" min="6" max="84" [(ngModel)]="nouvelle.dureeMois"></label>
+        <label>Motif <input name="motif" [(ngModel)]="nouvelle.motif"></label>
+        <button type="submit" [disabled]="enCours()">Déposer la demande</button>
+      </form>
+    </section>
+
+    <section class="carte">
+      <h2>Dossiers</h2>
+      <p class="aide">Cycle de vie : <b>DEPOSE</b> → <b>EN_ETUDE</b> (score via OpenFeign) → <b>ACCORDE</b> / REFUSE → <b>DEBLOQUE</b> (versement, échéancier activé).</p>
+      <table>
+        <thead>
+          <tr><th>N°</th><th>Client</th><th>Demandé</th><th>Accordé</th><th>Taux</th><th>Durée</th><th>Score</th><th>Statut</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          @for (d of dossiers(); track d.id) {
+            <tr>
+              <td>{{ d.id }}</td>
+              <td>{{ nomClient(d.clientId) }}</td>
+              <td>{{ d.montantDemande | number:'1.0-0' }} MAD</td>
+              <td>{{ d.montantAccorde != null ? (d.montantAccorde | number:'1.0-0') + ' MAD' : '—' }}</td>
+              <td>{{ d.tauxPropose != null ? d.tauxPropose + ' %' : '—' }}</td>
+              <td>{{ d.dureeMois }} mois</td>
+              <td>{{ d.scoreEtude ?? '—' }}</td>
+              <td><span class="badge" [attr.data-statut]="d.statut">{{ d.statut }}</span></td>
+              <td class="actions">
+                @switch (d.statut) {
+                  @case ('DEPOSE') { <button (click)="etudier(d)" [disabled]="enCours()">Mettre à l'étude</button> }
+                  @case ('EN_ETUDE') { <button (click)="decider(d)" [disabled]="enCours()">Décider</button> }
+                  @case ('ACCORDE') {
+                    <button (click)="verser(d)" [disabled]="enCours()">Verser les fonds</button>
+                    <button class="secondaire" (click)="voirAmortissement(d)">Échéancier</button>
+                  }
+                  @case ('DEBLOQUE') { <button class="secondaire" (click)="voirAmortissement(d)">Tableau d'amortissement</button> }
+                  @default { <span class="muet">{{ d.commentaireDecision }}</span> }
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="9" class="muet">Aucun dossier. Les services sont-ils lancés ?</td></tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    @if (dossierAmortissement(); as d) {
+      <section class="carte">
+        <div class="entete-section">
+          <h2>Tableau d'amortissement — dossier n° {{ d.id }} ({{ nomClient(d.clientId) }})</h2>
+          <button class="secondaire" (click)="fermerAmortissement()">Fermer</button>
+        </div>
+        <p class="aide">
+          {{ d.montantAccorde | number:'1.0-0' }} MAD sur {{ d.dureeMois }} mois au taux de {{ d.tauxPropose }} % ·
+          total des intérêts : <b>{{ totalInterets() | number:'1.2-2' }} MAD</b> ·
+          total remboursé : <b>{{ totalMensualites() | number:'1.2-2' }} MAD</b>
+        </p>
+        <table>
+          <thead>
+            <tr><th>N°</th><th>Échéance</th><th>Capital</th><th>Intérêts</th><th>Mensualité</th><th>Capital restant dû</th><th>Statut</th></tr>
+          </thead>
+          <tbody>
+            @for (l of amortissement(); track l.numeroEcheance) {
+              <tr>
+                <td>{{ l.numeroEcheance }}</td>
+                <td>{{ l.dateEcheance | date:'dd/MM/yyyy' }}</td>
+                <td>{{ l.montantCapital | number:'1.2-2' }}</td>
+                <td>{{ l.montantInterets | number:'1.2-2' }}</td>
+                <td><b>{{ l.mensualite | number:'1.2-2' }}</b></td>
+                <td>{{ l.capitalRestant | number:'1.2-2' }}</td>
+                <td><span class="badge" [attr.data-statut]="l.statut">{{ l.statut }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+  }
+
+  <!-- ======================= CLIENTS ======================= -->
+  @if (onglet() === 'clients') {
+    <section class="carte">
+      <h2>Clients (service-clients)</h2>
+      <table>
+        <thead><tr><th>N°</th><th>Nom</th><th>Email</th><th>Revenus mensuels</th><th>Score interne</th><th>Statut</th></tr></thead>
+        <tbody>
+          @for (c of clients(); track c.id) {
+            <tr>
+              <td>{{ c.id }}</td><td>{{ c.nom }}</td><td>{{ c.email }}</td>
+              <td>{{ c.revenusMensuels | number:'1.0-0' }} MAD</td><td>{{ c.scoreInterne }}</td>
+              <td><span class="badge" [attr.data-statut]="c.statut">{{ c.statut }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+
+  <!-- ======================= TRÉSORERIE ======================= -->
+  @if (onglet() === 'tresorerie') {
+    <section class="carte">
+      <h2>Comptes de trésorerie (service-decaissements)</h2>
+      <table>
+        <thead><tr><th>N°</th><th>Libellé</th><th>Solde disponible</th></tr></thead>
+        <tbody>
+          @for (t of tresoreries(); track t.id) {
+            <tr><td>{{ t.id }}</td><td>{{ t.libelle }}</td><td><b>{{ t.soldeDisponible | number:'1.2-2' }} MAD</b></td></tr>
+          }
+        </tbody>
+      </table>
+      <p class="aide">Chaque versement est débité du compte n° 1 dans la transaction locale de service-decaissements.</p>
+    </section>
+  }
+
+  <!-- ======================= NOTIFICATIONS ======================= -->
+  @if (onglet() === 'notifications') {
+    <section class="carte">
+      <h2>Notifications envoyées (RabbitMQ → notification-service → MailHog)</h2>
+      <table>
+        <thead><tr><th>Date</th><th>Événement</th><th>Dossier</th><th>Destinataire</th><th>Objet</th><th>Statut</th></tr></thead>
+        <tbody>
+          @for (n of notifications(); track $index) {
+            <tr>
+              <td>{{ n.date | date:'dd/MM HH:mm:ss' }}</td><td>{{ n.evenement }}</td><td>{{ n.dossierId }}</td>
+              <td>{{ n.destinataire }}</td><td>{{ n.objet }}</td>
+              <td><span class="badge" [attr.data-statut]="n.statut">{{ n.statut }}</span></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="muet">Aucune notification pour l'instant. Accordez un crédit ou versez des fonds.</td></tr>
+          }
+        </tbody>
+      </table>
+      <p class="aide">Les emails sont visibles dans <a href="http://localhost:8025" target="_blank">MailHog</a>.</p>
+    </section>
+  }
+</main>

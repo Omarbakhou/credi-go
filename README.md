@@ -153,6 +153,18 @@ Importer `postman/Credi-Go.postman_collection.json`. Chaque requête contient un
 - Le montant accordé n'est **versé qu'une seule fois** ; si le déblocage échoue côté service-credit, la transaction locale est annulée : les fonds sont libérés et le dossier reste `ACCORDE` (décaissement à reprendre).
 - L'**échéancier** n'est activé qu'après le **versement effectif** (dossier `DEBLOQUE`).
 
+## Interface Angular (bonus)
+
+Une interface Angular 22 minimale (`credi-go-front/`) consomme l'API **uniquement via la Gateway** (`http://localhost:8080`, CORS déclaré dans `config-repo/gateway-service.properties`) :
+
+- dossiers de crédit avec le bouton d'action correspondant au statut (**Mettre à l'étude**, **Décider**, **Verser les fonds**) et dépôt d'une nouvelle demande (en-tête `Idempotency-Key` généré) ;
+- **tableau d'amortissement** d'un dossier : échéance, capital, intérêts, mensualité, capital restant dû, statut ;
+- clients, comptes de trésorerie et notifications envoyées.
+
+```bash
+./start-front.sh        # http://localhost:4200 (services lancés au préalable)
+```
+
 ## Feuille de route des jalons
 
 | Jalon | Contenu pour Credi-Go | Tag |
@@ -166,4 +178,4 @@ Importer `postman/Credi-Go.postman_collection.json`. Chaque requête contient un
 | V6 | Résilience (Resilience4j : Retry, Circuit Breaker, timeouts), gestion globale des erreurs, idempotence des créations | `v6.0` |
 | V7 | Kafka : `application-deposited`, `client-scored`, `loan-approved`, `disbursement-paid`, `disbursement-failed` ; notifications migrées de RabbitMQ vers Kafka | à venir |
 
-Bonus envisagé : job batch mensuel de traitement des échéances (relances des retardataires, calcul des intérêts) et tableau d'amortissement côté Angular.
+Bonus : tableau d'amortissement et pilotage du cycle de vie côté Angular (réalisé, voir ci-dessus) ; job batch mensuel de traitement des échéances à venir.

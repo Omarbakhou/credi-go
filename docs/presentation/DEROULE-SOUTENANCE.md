@@ -81,3 +81,9 @@ Postman : clic droit sur la collection « Credi-Go - V1 à V6 » → **Run colle
 - 503 sur une requête Feign : `./start-all.sh`, attendre PRÊT, recommencer.
 - Gateway absente d'Eureka : même chose.
 - Une requête du dossier 6 renvoie 409 « seul un dossier DEPOSE peut être mis à l'étude » : tu as cliqué deux fois, reprends à « Déposer une demande ».
+
+## Bonus — Interface Angular (si tu veux impressionner)
+
+Lancer avant : `./start-front.sh` (depuis JEE_PROJECT) → http://localhost:4200.
+Onglet **Dossiers de crédit** : formulaire « Nouvelle demande » → **Déposer** → sur la ligne créée : **Mettre à l'étude** → **Décider** → **Verser les fonds** → **Tableau d'amortissement**. Puis onglet **Notifications** (les deux mails) et **Trésorerie** (solde débité).
+Tu dis : « Le front ne parle qu'à la Gateway. Le tableau d'amortissement est calculé à partir de l'échéancier du service-credit : mensualité et capital restant dû. »
